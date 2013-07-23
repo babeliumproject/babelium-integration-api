@@ -4,7 +4,7 @@
 
 Here you will find the latest versions of the plug-ins. Sometimes it takes a while for the plug-ins. to be added to the official Moodle plug-in repository so if you want to test the latest features this is the way to go.
 
-The plug-in is currently available in 3 languages: English, Spanish, Basque and German.
+The plug-in is currently available in 4 languages: English, Spanish, Basque and German.
 
 Cloning the repository
 ----------------------
