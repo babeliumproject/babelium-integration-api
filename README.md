@@ -14,6 +14,15 @@ To run the development version of Babelium first clone the git repository.
 
 Now the entire project should be in the `babelium-moodle-plugins/` directory.
 
+Prerequisites
+-------------
+
+* Moodle 1.9.10+
+* Babelium standalone site
+* php-curl (in the Moodle server)
+ 
+You need to have both Moodle and Babelium standalone site installed (in the same or different servers) to be able to use Babelium's Moodle plugins. php-curl also needs to be installed on your Moodle server to be able to make RPC-API requests to the Babelium server.
+
 Installing the Moodle 1.9 plug-ins.
 ----------------------------------
 Copy the `common` and `moodle19/mod` folders to Moodle's home directory.
@@ -184,35 +193,48 @@ Apply the provided SQL patch to enable Moodle site registration
 
 Fill the data of `<babelium_home>/api/services/utils/Config.php` (or copy from `<babelium_home>/services/utils/Config.php`) and check if the paths in `<babelium_home>/api/services/utils/VideoProcessor.php` are right.
 
+Check if the paths in `<babelium_home>/api/services/utils/VideoProcessor.php` and `<babelium_script_directory>/VideoCollage.php` are right.
+
+Ensure the owner of `<babelium_script_directory>/VideoCollage.php` has write permissions in the `<red5_directory>/webapps/<appname>/streams/responses` dicretory.
+
 Copy the standalone video player to the Babelium home directory (the embeddable player is available in other repository, please read below).
 
 	$ cd babelium-flex-embeddable-player/dist
-	$ cp babeliumPlayer.* <babelium_home>/
+	$ cp babeliumPlayer.* <babelium_directory>/
 
 **NOTE:** If you need help compiling the standalone player read the next point.
 
 Following these steps you should be able to register Moodle instances in your Babelium server.
 
 ###Compile the standalone video player
-Babelium needs a special version of the video player to support embedding in Moodle and other systems. These are the steps you need to take to compile the standalone player from the source code.
+Babelium needs a special version of the video player to support embedding in Moodle and other systems. These are the steps you need to take to compile the embeddable player from the source code.
 
-Download and unpack Flex SDK 4.6
+[Babelium Standalone site readme]: http://https://github.com/babeliumproject/flex-standalone-site
 
-	$ wget http://download.macromedia.com/pub/flex/sdk/flex_sdk_4.6.zip
-	$ unzip flex_sdk_4.6.zip
+To install and configure the prerequisites see [Babelium Standalone site readme][].
 
-Make a locale for Basque language (because it is not included by default):
-
-	$ cd <flex_home>/bin
-	$ ./copylocale en_US eu_ES
-
-Fill the build.properties file for the standalone player (assuming you already cloned the git repository):
+Then, fill the `build.properties` file for the embeddable player:
 
 	$ cd babelium-flex-embeddable-player
 	$ cp build.properties.template build.properties
 	$ vi build.properties
 
-Specify the home folder of the Flex SDK **FLEX_HOME** and the local path of the repository **BASE**. Leave the rest of the fields unchanged (we don't need them for this purpose).
+This table describes the purpose of the property fields you should fill:
+
+<table>
+ <tr><th>Property</th><th>Description</th></tr>
+ <tr><td>FLEX_HOME</td><td>The home directory of your Flex SDK installation.</td></tr>
+ <tr><td>LOCALE_BUNDLES</td><td>The UI language packs to include when building the platform. All available languages are included by default. To choose only a subset of the languages, write a comma-separated list of locale codes. Locale codes have the following format: <strong>es_ES</strong> (es=Spanish, ES=Spain).</td></tr>
+ <tr><td>BASE</td><td>The local path of the cloned repository (e.g. /home/babelium/git/babelium-flex-embeddable-player).</td></tr>
+ <tr><td>WEB_DOMAIN</td><td>The web domain for the platform (e.g. www.babeliumproject.com).</td></tr>
+ <tr><td>WEB_ROOT</td><td>The path to the web root of the platform (e.g. /var/www/babelium) </td></tr>
+ <tr><td>RED5_PATH</td><td>The path to the streaming server (e.g. /var/red5).</td></tr>
+ <tr><td>RED5_APPNAME</td><td>The name of the app that is going to perform the streaming job. By default <strong>vod</strong>.</td></tr>
+</table>
+
+You can leave the rest of the fields unchanged. These additional fields are mainly for filling the `Config.php` file needed for the service calls. If you want to know more about the purpose of these fields please check the [Babelium Standalone site readme][]. If you already deployed the Babelium standalone site you can just grab the `Config.php` file from `<babelium_directory>/services/utils/Config.php` and copy it to `<babelium_directory>/api/services/utils`.
+
+Once you are done editing, run ant to build:
 
 	$ ant
 
