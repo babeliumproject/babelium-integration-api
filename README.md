@@ -120,10 +120,8 @@ If you also installed the **filter plug-in**, the filter settings page will auto
 ###Troubleshooting
 See the section below.
 
-Installing the Moodle 2.3+ plug-in
+Installing the Moodle 2.3 plug-in
 ---------------------------------
-
-**NOTE:** Also works for Moodle 2.4.
 
 From Moodle 2.3 onwards, `assignment_type` plug-ins. are deprecated and replaced by `assign_submission` or `assign_feedback` plug-ins.
 
@@ -158,6 +156,44 @@ If you have the 1.9 or 2.0-2.2 version of Babelium's Moodle plug-in installed yo
 ###Troubleshooting
 See the section below.
 
+Installing the Moodle 2.4+ plug-in
+---------------------------------
+
+**NOTE:** The minimum required Moodle 2.4 version is **2012120300.05**. You can check your exact Moodle version in `<moodle_home>/version.php` file's `$version` variable. 
+
+From Moodle 2.3 onwards, `assignment_type` plug-ins. are deprecated and replaced by `assign_submission` or `assign_feedback` plug-ins.
+
+Copy the files from the `moodle24` to Moodle's home directory. 
+
+	$ cd babelium-moodle-plugins
+	$ cp -r moodle24/* <moodle_directory>/
+
+If you copied the folders in the right place you should see some files here:
+
+	$ ls <moodle_directory>/mod/assign/submission/babelium
+
+###Enabling the plug-in
+Log in with an admin account to your Moodle site. Moodle should automatically detect that a new plug-in is being added and prompt you for actions to take. If this is not the case, browse to the following URL to force the plug-in installation page to appear:
+
+	http://<moodle_domain>/admin
+
+After successfully installing the plug-in you will see a settings page where you should input the key-pair provided in your Moodle site registration step.
+
+**NOTE:** If you are using your own Babelium server see below for further clarification on how to enable Moodle site support on your Babelium server.
+
+###Create a sample Babelium assignment
+Choose a random course and add a new sample Babelium assignment choosing
+
+	Add an activity or resource -> Assignments
+
+In the form that is displayed you can see Babelium alongside File and Text submissions. This means you can have man kinds of submissions for the same assignment.
+
+###Upgrading from previous versions
+If you have the 1.9 or 2.0-2.2 version of Babelium's Moodle plug-in installed you can upgrade all your assignment data to the new architecture to avoid the deprecated modules. Simply install Babelium's Moodle 2.4 plug-in, follow the configuration steps and when you are done, use the built-in migration wizard. Check Moodle's documentation if you don't know how to proceed.
+
+###Troubleshooting
+See the section below.
+
 Enabling Moodle support in the Babelium server
 --------------------------------------------
 If you are using your own Babelium server and want to enable Moodle instances to access the exercises stored there, you have to take additional steps, such as placing some API files and compiling a special version of the video player.
@@ -181,7 +217,7 @@ Copy the placeholder video that will be displayed while the videos are still not
 
 [Inkscape]: http://inkscape.org/
 
-**NOTE:** The provided placeholder video file displays a message in Basque, Spanish and English (the message reads "Your video is still processing. Sorry for the inconvenience."). If you wish to display another message or want to display a message in some other language you can make your own placeholde video. For that purpose, we provide the original vectorial image (the video loop source) of placeholder_merge.flv in `babelium-moodle-plugins/patches/media/placeholder_merge.svg`. You can edit this file using the open source application Inkscape. When you are done editing, you have to export the SVG file as PNG (File -> Export Bitmap...) to use it as an input for ffmpeg. The following ffmpeg command creates a 20 second video using the PNG image we exported as loop source:
+**NOTE:** The provided placeholder video file displays a message in Basque, Spanish and English (the message reads "Your video is still processing. Sorry for the inconvenience."). If you wish to display another message or want to display a message in some other language you can make your own placeholde video. For that purpose, we provide the original vectorial image (the video loop source) of placeholder_merge.flv in `babelium-moodle-plugins/patches/media/placeholder_merge.svg`. You can edit this file using the open source application [Inkscape][]. When you are done editing, you have to export the SVG file as PNG (File -> Export Bitmap...) to use it as an input for ffmpeg. The following ffmpeg command creates a 20 second video using the PNG image we exported as loop source:
 
 	$ ffmpeg -y -loop 1 -f image2 -i placeholder_merge.png -ar 22050 -f s16le -i /dev/zero -r 25 -t 25 -s 426x240 -g 25 -qmin 3 -b:v 512k placeholder_merge.flv
 
