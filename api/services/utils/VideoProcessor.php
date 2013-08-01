@@ -91,7 +91,7 @@ class VideoProcessor{
 				throw new Exception("Unknown media format\n");
 			}
 		} else {
-			throw new Exception("Not a file\n");
+			throw new Exception("File $cleanPath doesn't exist or is not readable\n");
 		}
 	}
 
@@ -125,7 +125,7 @@ class VideoProcessor{
 
 			return $validMime;
 		} else {
-			throw new Exception("Not a file\n");
+			throw new Exception("File $cleanPath doesn't exist or is not readable\n");
 		}
 	}
 

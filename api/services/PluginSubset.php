@@ -25,7 +25,6 @@ class PluginSubset{
 
 	public function __construct(){
 		try{
-			error_log("INSTANCE KEY ".self::$userId."\n",3,"/tmp/test.log");
 			$this->conf = new Config();
 			$this->db = new Datasource($this->conf->host, $this->conf->db_name, $this->conf->db_username, $this->conf->db_password);
 			$this->mediaHelper = new VideoProcessor();
@@ -54,8 +53,6 @@ class PluginSubset{
 	//}
 
 	public function getSubtitleLines($subtitle=null) {
-		
-		error_log("SUBTITLE_LINES: ".print_r($subtitle,true)."\n",3,"/tmp/test.log");	
 		if(!$subtitle)
 			return false;
 
@@ -93,7 +90,7 @@ class PluginSubset{
 		if ($userId)
 			//$where = " AND u.ID = ". $userId . " " ;
 			//sprintf() if you're going to use % as a character scape it putting it twice %%, otherwise there'll be problems while parsing your string
-			$where = " AND ( u.ID = ". $userId ." OR (e.license like 'cc-%%' AND e.language IN (select language from user_languages where id=u.ID))) ";
+			$where = " AND ( u.ID = ". $userId ." OR (e.license like 'cc-%%' )) ";
 		else
 			return;
 
@@ -119,7 +116,7 @@ class PluginSubset{
        				    LEFT OUTER JOIN exercise_level l ON e.id=l.fk_exercise_id
        			 WHERE e.status = 'Available' AND t.complete = 1 ". $where . " 
 			 GROUP BY e.id
-			 ORDER BY e.name DESC, e.language DESC";
+			 ORDER BY e.title ASC, e.language ASC";
 		$searchResults = $this->db->_multipleSelect($sql);
 		
 		return $searchResults;
@@ -238,7 +235,6 @@ class PluginSubset{
 
 			try{
 				$videoPath = $this->conf->red5Path .'/'. $this->responseFolder .'/'. $data->fileIdentifier . '.flv';
-				error_log("WHAT IS NOT A FILE ".$videoPath,3,"/tmp/test.log");
 				$mediaData = $this->mediaHelper->retrieveMediaInfo($videoPath);
 				$duration = $mediaData->duration;
 

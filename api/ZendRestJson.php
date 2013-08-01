@@ -229,11 +229,13 @@ class ZendRestJson extends Zend_Rest_Server
 
 		$json['status'] = 'failure';
 
+		$message = $exception->getMessage();
 		// Headers to send
 		if ($code === null){
+			//Service exception or unknown exception. Log the message to server file and send general 400 Bad Request header to client
+			error_log("[".date("d/m/Y H:i:s")."] ".$message."\n",3,"/tmp/moodle.log");
 			$this->_headers[] = 'HTTP/1.0 400 Bad Request';
 		} else {
-			$message = $exception->getMessage();
 			switch($code){
 				case 403:
 					$this->_headers[] = empty($message) ? 'HTTP/1.0 403 Forbidden' : 'HTTP/1.0 403 '.$message;
@@ -374,7 +376,6 @@ class ZendRestJson extends Zend_Rest_Server
 		} catch(Exception $e){
 			throw new Exception("Not found",404);
 		}
-		//error_log("QUERY ACCESS:".print_r($result,true),3,"/tmp/test.log");
 		if($result){
 			$s_secret_access_key = $result->secret_access_key;
 			$s_access_key = $result->access_key;
@@ -382,8 +383,6 @@ class ZendRestJson extends Zend_Rest_Server
 		} else {
 			throw new Exception("Invalid credentials provided",403);
 		}
-		
-		//error_log("TIMESTAMPS: client: ".$cl_timestamp." server: ".$s_timestamp."\n",3,"/tmp/test.log");
 	
 		//Check if the request is skewed in time to avoid replication
 		if( $cl_timestamp > ($s_timestamp - $this->allowed_time_skew) &&
@@ -397,6 +396,7 @@ class ZendRestJson extends Zend_Rest_Server
 			$headers = apache_request_headers();
 			$r_referer = isset($headers['Host']) ? $headers['Host'] : '';
 
+			/*
 			error_log(
 				"REQUEST VALIDATION INFORMATION:\n
 					\tMethod: ".$r_method."\n
@@ -405,9 +405,9 @@ class ZendRestJson extends Zend_Rest_Server
 					\tRequest header domain: ".$r_referer."\n
 					\tSecret access key: ".$s_secret_access_key."\n
 					\tresulting signature: ".$s_signature."\n",3,"/tmp/moodle.log");
+			*/
 			if ($cl_signature == $s_signature){
 				PluginSubset::$userId = $result->fk_user_id;
-				//error_log("VALID SIGNATURE => USERID: ".$result->fk_user_id."\n",3,"/tmp/test.log");
 				return TRUE;
 			} else {
 				throw new Exception("Invalid signature",403);
