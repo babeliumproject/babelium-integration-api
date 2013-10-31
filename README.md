@@ -319,6 +319,14 @@ If you have other errors, or don't know how to proceed, please don't hesitate to
 ###Babelium Error 500. Internal server error
 * Very unlikely to occur. Could happen when the Babelium server uses an old version of PHP (&lt; PHP 5.0)
 
+###Moodle server is behind a firewall
+Babelium uses cURL to retrieve data from its API. If your Babelium instance is hosted in a different server than Moodle's and the Moodle server is behind a proxy/firewall you'll need to configure Moodle's proxy settings to have access to the data (the Babelium plugin will inherit these settings). To change these settings go to:
+
+	Administration -> Site administration -> Server -> HTTP
+	
+Fill in the data for your web proxy and remember to add the domain of your Babelium instance to the `Proxy bypass hosts` field.
+
+
 ###How to completely uninstall Babelium plug-ins.
 This is useful when the plug-in isn't correctly installed. With these steps you can completely remove the Babelium plug-in, in order to do a fresh installation.
 
