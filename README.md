@@ -7,6 +7,33 @@ Here you will find the latest versions of the plug-ins. Sometimes it takes a whi
 
 The plug-ins are currently available in 4 languages: English, Spanish, Basque and German.
 
+**Table of contents**
+- [Cloning the repository](#cloning-the-repository)
+- [Prerequisites](#prerequisites)
+- [Installing the Moodle 1.9 plug-ins](#installing-the-moodle-19-plug-ins)
+	- [Enabling the plug-in](#enabling-the-plug-in)
+	- [Create a sample Babelium assignment](#create-a-sample-babelium-assignment)
+- [Installing the Moodle 2.0-2.2 plug-ins](#installing-the-moodle-20-22-plug-ins)
+	- [Enabling the plug-in](#enabling-the-plug-in-1)
+	- [Create a sample Babelium assignment](#create-a-sample-babelium-assignment-1)
+- [Installing the Moodle 2.3 plug-in](#installing-the-moodle-23-plug-in)
+	- [Enabling the plug-in](#enabling-the-plug-in-2)
+	- [Create a sample Babelium assignment](#create-a-sample-babelium-assignment-2)
+	- [Upgrading from previous versions](#upgrading-from-previous-versions)
+- [Installing the Moodle 2.4+ plug-in](#installing-the-moodle-24-plug-in)
+	- [Enabling the plug-in](#enabling-the-plug-in-3)
+	- [Create a sample Babelium assignment](#create-a-sample-babelium-assignment-3)
+	- [Upgrading from previous versions](#upgrading-from-previous-versions-1)
+- [Enabling Moodle support in the Babelium server](#enabling-moodle-support-in-the-babelium-server)
+	- [Compile the standalone video player](#compile-the-standalone-video-player)
+- [Troubleshooting & technical support](#troubleshooting--technical-support)
+	- [How to contact technical support](#how-to-contact-technical-support)
+	- [Babelium Error 403. Wrong authorization credentials](#babelium-error-403-wrong-authorization-credentials)
+	- [Babelium Error 400. Malformed request error](#babelium-error-400-malformed-request-error)
+	- [Babelium Error 500. Internal server error](#babelium-error-500-internal-server-error)
+	- [Moodle server is behind a firewall](#moodle-server-is-behind-a-firewall)
+	- [How to completely uninstall Babelium plug-ins](#how-to-completely-uninstall-babelium-plug-ins)
+
 ##Cloning the repository
 To run the development version of Babelium first clone the git repository.
 
@@ -69,8 +96,6 @@ Choose a random course and add a new sample Babelium assignment choosing
 
 	Add an activity... -> Assignments -> Babelium activity
 
-###Troubleshooting
-See the section below.
 
 ##Installing the Moodle 2.0-2.2 plug-ins
 Copy the `common` and `moodle20-22/mod` folders to Moodle's home directory.
@@ -114,8 +139,10 @@ After you are done with the previous steps, log in with an admin account into yo
 
 If you also installed the **filter plug-in**, the filter settings page will automatically appear after the installation is done. Fill the settings with the information you got when registering your Moodle site in [Babelium] and click on **Save changes**. You can change the settings of the filter by visiting `Site Administration -> Plugins -> Filters -> Manage Filters -> Babelium` using an admin account.
 
-###Troubleshooting
-See the section below.
+###Create a sample Babelium assignment
+Choose a random course and add a new sample Babelium assignment choosing
+
+	Add an activity... -> Assignments -> Babelium activity
 
 ##Installing the Moodle 2.3 plug-in
 
@@ -149,8 +176,6 @@ In the form that is displayed you can see Babelium alongside File and Text submi
 ###Upgrading from previous versions
 If you have the 1.9 or 2.0-2.2 version of Babelium's Moodle plug-in installed you can upgrade all your assignment data to the new architecture to avoid the deprecated modules. Simply install Babelium's Moodle 2.3 plug-in, follow the configuration steps and when you are done, use the built-in migration wizard. Check Moodle's documentation if you don't know how to proceed.
 
-###Troubleshooting
-See the section below.
 
 ##Installing the Moodle 2.4+ plug-in
 
@@ -186,8 +211,6 @@ In the form that is displayed you can see Babelium alongside File and Text submi
 ###Upgrading from previous versions
 If you have the 1.9 or 2.0-2.2 version of Babelium's Moodle plug-in installed you can upgrade all your assignment data to the new architecture to avoid the deprecated modules. Simply install Babelium's Moodle 2.4 plug-in, follow the configuration steps and when you are done, use the built-in migration wizard. Check Moodle's documentation if you don't know how to proceed.
 
-###Troubleshooting
-See the section below.
 
 ##Enabling Moodle support in the Babelium server
 
@@ -322,7 +345,7 @@ Babelium uses cURL to retrieve data from its API. If your Babelium instance is h
 Fill in the data for your web proxy and remember to add the domain of your Babelium instance to the `Proxy bypass hosts` field.
 
 
-###How to completely uninstall Babelium plug-ins.
+###How to completely uninstall Babelium plug-ins
 This is useful when the plug-in isn't correctly installed. With these steps you can completely remove the Babelium plug-in, in order to do a fresh installation.
 
 Remove all the plug-in files and folders (they should be in one of the following locations):
