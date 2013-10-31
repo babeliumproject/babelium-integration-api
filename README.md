@@ -1,21 +1,20 @@
-﻿This repository is the code for [Babelium][]'s Moodle plug-ins.
+#Babelium Moodle plugins
+This repository is the code for [Babelium][]'s Moodle plug-ins.
 
 [Babelium]: http://babeliumproject.com
 
-Here you will find the latest versions of the plug-ins. Sometimes it takes a while for the plug-ins. to be added to the official Moodle plug-in repository so if you want to test the latest features this is the way to go.
+Here you will find the latest versions of the plug-ins. Sometimes it takes a while for the plug-ins to be added to the official Moodle plug-in repository so if you want to test the latest features this is the way to go.
 
-The plug-in is currently available in 4 languages: English, Spanish, Basque and German.
+The plug-ins are currently available in 4 languages: English, Spanish, Basque and German.
 
-Cloning the repository
-----------------------
+##Cloning the repository
 To run the development version of Babelium first clone the git repository.
 
 	$ git clone git://github.com/babeliumproject/moodle-assignsubmission_babelium.git babelium-moodle-plugins
 
 Now the entire project should be in the `babelium-moodle-plugins/` directory.
 
-Prerequisites
--------------
+##Prerequisites
 
 * Moodle 1.9.10+
 * Babelium standalone site
@@ -23,8 +22,7 @@ Prerequisites
  
 You need to have both Moodle and Babelium standalone site installed (in the same or different servers) to be able to use Babelium's Moodle plugins. php-curl also needs to be installed on your Moodle server to be able to make RPC-API requests to the Babelium server.
 
-Installing the Moodle 1.9 plug-ins.
-----------------------------------
+##Installing the Moodle 1.9 plug-ins
 Copy the `common` and `moodle19/mod` folders to Moodle's home directory.
 	
 	$ cd babelium-moodle-plugins
@@ -74,8 +72,7 @@ Choose a random course and add a new sample Babelium assignment choosing
 ###Troubleshooting
 See the section below.
 
-Installing the Moodle 2.0-2.2 plug-ins.
---------------------------------------
+##Installing the Moodle 2.0-2.2 plug-ins
 Copy the `common` and `moodle20-22/mod` folders to Moodle's home directory.
 	
 	$ cd babelium-moodle-plugins
@@ -120,8 +117,7 @@ If you also installed the **filter plug-in**, the filter settings page will auto
 ###Troubleshooting
 See the section below.
 
-Installing the Moodle 2.3 plug-in
----------------------------------
+##Installing the Moodle 2.3 plug-in
 
 From Moodle 2.3 onwards, `assignment_type` plug-ins. are deprecated and replaced by `assign_submission` or `assign_feedback` plug-ins.
 
@@ -156,8 +152,7 @@ If you have the 1.9 or 2.0-2.2 version of Babelium's Moodle plug-in installed yo
 ###Troubleshooting
 See the section below.
 
-Installing the Moodle 2.4+ plug-in
----------------------------------
+##Installing the Moodle 2.4+ plug-in
 
 **NOTE:** The minimum required Moodle 2.4 version is **2012120300.05**. You can check your exact Moodle version in `<moodle_home>/version.php` file's `$version` variable. 
 
@@ -194,8 +189,8 @@ If you have the 1.9 or 2.0-2.2 version of Babelium's Moodle plug-in installed yo
 ###Troubleshooting
 See the section below.
 
-Enabling Moodle support in the Babelium server
---------------------------------------------
+##Enabling Moodle support in the Babelium server
+
 If you are using your own Babelium server and want to enable Moodle instances to access the exercises stored there, you have to take additional steps, such as placing some API files and compiling a special version of the video player.
 
 Copy the Moodle API files and the Moodle site registration script:
@@ -290,8 +285,8 @@ on a a different server.
 
 **NOTE:** using "*" means you give access to any host and that could lead to some attacks. We use this wildcard because in our demo server we let users from any domain to sign-up for a Moodle API key, and thus, can't determine the origin beforehand. If you are part of an institution you can limit the access control to your domains to have less security risks.
 
-Troubleshooting & technical support
------------------------------------
+##Troubleshooting & technical support
+
 These are some common errors you might find and how to go about them.
 
 ###How to contact technical support
