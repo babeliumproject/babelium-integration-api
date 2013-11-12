@@ -272,7 +272,7 @@ class PluginSubset{
 				else
 				$r->responseThumbnail = 'http://' . $_SERVER['HTTP_HOST'] . '/resources/images/thumbs/nothumb.png';
 				$r->responseFileIdentifier = $data->fileIdentifier;
-				$this->linkToPlaceholderVideo($r->responseFileIdentifier);
+				//$this->linkToPlaceholderVideo($r->responseFileIdentifier);
 				return $r;
 			} else {
 				return false;
