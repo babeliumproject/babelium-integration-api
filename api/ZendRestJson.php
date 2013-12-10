@@ -36,9 +36,29 @@ class ZendRestJson extends Zend_Rest_Server
 	protected $_faultResult = false;
 	
 	private $allowed_time_skew = 900; //allowed time skew in seconds
+
+	private $r_access_key = '';
+	private $r_referer = '';
+	private $r_origin = '';
+	private $r_ip = '';
 	
 	private function setHeaders(){
 		$this->_headers = array('Content-Type: application/json');
+	}
+
+	private function requestHeaders(){
+		$this->r_referer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+		$r_allheaders = function_exists('apache_request_headers') ? apache_request_headers() : null;
+		if($r_allheaders && isset($r_allheaders['Origin'])){
+			$this->r_origin = $r_allheaders['Origin'];
+		}
+		if($this->r_referer && ($p = parse_url($this->r_referer))){
+			$r_host = $p['host'];
+			$ip = gethostbyname($r_host);
+			if($ip !== $r_host){
+				$this->r_ip = $ip;
+			}
+		}
 	}
 	
 	/**
@@ -51,6 +71,7 @@ class ZendRestJson extends Zend_Rest_Server
 	public function handle($request = false)
 	{
 		$this->setHeaders();
+		$this->requestHeaders();
 		if (!$request) {
 			$request = $_REQUEST;
 		}
@@ -221,6 +242,7 @@ class ZendRestJson extends Zend_Rest_Server
 		if ($exception instanceof Exception) {
 			$json['response'] = array("message" => $exception->getMessage());
 			$code = $exception->getCode();
+			$message = $exception->getMessage();
 		} elseif (($exception !== null) || 'rest' == $function) {
 			$json['response'] = array("message" => 'An unknown error occurred. Please try again.');
 		} else {
@@ -228,12 +250,10 @@ class ZendRestJson extends Zend_Rest_Server
 		}
 
 		$json['status'] = 'failure';
-
-		$message = $exception->getMessage();
+			
 		// Headers to send
 		if ($code === null){
-			//Service exception or unknown exception. Log the message to server file and send general 400 Bad Request header to client
-			error_log("[".date("d/m/Y H:i:s")."] ".$message."\n",3,"/tmp/moodle.log");
+			//Service exception or unknown exception. Send general 400 Bad Request header to client
 			$this->_headers[] = 'HTTP/1.0 400 Bad Request';
 		} else {
 			switch($code){
@@ -255,6 +275,11 @@ class ZendRestJson extends Zend_Rest_Server
 			}
 		}
 		$this->_faultResult = true;
+
+		//Log the fault in the server
+		$message = empty($message) ? implode(",", $json['response']) : $message;
+		error_log("[".date("d/m/Y H:i:s")."] referer=".$this->r_referer." origin=".$this->r_origin." ip=".$this->r_ip." access_key=".$this->r_access_key." message=".$message."\n",3,"/tmp/moodle.log");	
+
 		return $json;
 	}
 
@@ -338,6 +363,7 @@ class ZendRestJson extends Zend_Rest_Server
 				$client_date = trim($request_header['date']);
 				if( preg_match('/BMP ([^:]+):(.+)/s', $client_authorization, $matches) ){
 					$client_access_key = $matches[1];
+					$this->r_access_key = $client_access_key;
 					$client_signature = $matches[2];
 					$result = $this->_validateAuthorization($client_access_key, $client_signature, $client_date, $request_method);	
 				} else {
@@ -387,25 +413,12 @@ class ZendRestJson extends Zend_Rest_Server
 		//Check if the request is skewed in time to avoid replication
 		if( $cl_timestamp > ($s_timestamp - $this->allowed_time_skew) &&
 		    $cl_timestamp < ($s_timestamp + $this->allowed_time_skew) ){
-
-		    $s_stringtosign = utf8_encode($r_method . "\n" . $cl_date . "\n" . $s_referer);
+	
+		    	$s_stringtosign = utf8_encode($r_method . "\n" . $cl_date . "\n" . $s_referer);
 		    	
 			$digest = hash_hmac("sha256", $s_stringtosign, $s_secret_access_key, false);
 			$s_signature = base64_encode($digest);
 			
-			$headers = apache_request_headers();
-			$r_referer = isset($headers['Host']) ? $headers['Host'] : '';
-
-			/*
-			error_log(
-				"REQUEST VALIDATION INFORMATION:\n
-					\tMethod: ".$r_method."\n
-					\tDate: ".$cl_date."\n
-					\tDatabase allowed domain: ".$s_referer."\n
-					\tRequest header domain: ".$r_referer."\n
-					\tSecret access key: ".$s_secret_access_key."\n
-					\tresulting signature: ".$s_signature."\n",3,"/tmp/moodle.log");
-			*/
 			if ($cl_signature == $s_signature){
 				PluginSubset::$userId = $result->fk_user_id;
 				return TRUE;
