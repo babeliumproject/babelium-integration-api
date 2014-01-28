@@ -1,5 +1,9 @@
 <?php
 
+if(!isset($_SESSION)){
+    session_start();
+}
+
 require_once 'utils/Config.php';
 require_once 'utils/Datasource.php';
 require_once 'utils/VideoProcessor.php';
@@ -21,13 +25,16 @@ class PluginSubset{
 	//Multimedia file handling object
 	private $mediaHelper;
 
-	public static $userId;
+	private $consumer_id;
+	private $consumer_user_id;
 
 	public function __construct(){
 		try{
 			$this->conf = new Config();
 			$this->db = new Datasource($this->conf->host, $this->conf->db_name, $this->conf->db_username, $this->conf->db_password);
 			$this->mediaHelper = new VideoProcessor();
+			$this->consumer_id = $_SESSION['consumer_id'];
+			$this->consumer_user_id = $_SESSION['consumer_user_id'];
 		} catch(Exception $e){
 			throw new Exception($e->getMessage());
 		}
@@ -53,6 +60,7 @@ class PluginSubset{
 	//}
 
 	public function getSubtitleLines($subtitle=null) {
+		
 		if(!$subtitle)
 			return false;
 
@@ -86,7 +94,7 @@ class PluginSubset{
 	 */
 	public function getRecordableExercises(){
 		$where = "";
-		$userId = self::$userId;
+		$userId = $this->consumer_user_id;
 		if ($userId)
 			//$where = " AND u.ID = ". $userId . " " ;
 			//sprintf() if you're going to use % as a character scape it putting it twice %%, otherwise there'll be problems while parsing your string
@@ -95,22 +103,22 @@ class PluginSubset{
 			return;
 
 		$sql = "SELECT e.id,
-			       e.title, 
-			       e.description, 
-			       e.language, 
-			       e.tags, 
-			       e.source, 
-			       e.name, 
-			       e.thumbnail_uri as thumbnailUri,
+			           e.title, 
+			           e.description, 
+			           e.language, 
+			           e.tags, 
+			           e.source, 
+			           e.name, 
+			           e.thumbnail_uri as thumbnailUri,
        			       e.adding_date as addingDate, 
-			       e.duration, 
-			       u.name as userName, 
+			           e.duration, 
+			           u.username as userName, 
        			       avg (suggested_level) as avgDifficulty,
-			       e.status, 
-			       e.license, 
-			       e.reference
+			           e.status, 
+			           e.license, 
+			           e.reference
 			       FROM   exercise e 
-				 		INNER JOIN users u ON e.fk_user_id= u.ID
+				 		INNER JOIN user u ON e.fk_user_id= u.id
 				 		INNER JOIN subtitle t ON e.id=t.fk_exercise_id
        				    LEFT OUTER JOIN exercise_score s ON e.id=s.fk_exercise_id
        				    LEFT OUTER JOIN exercise_level l ON e.id=l.fk_exercise_id
@@ -136,12 +144,12 @@ class PluginSubset{
 			       e.thumbnail_uri as thumbnailUri,
 			       e.adding_date as addingDate, 
 			       e.duration, 
-			       u.name as userName, 
+			       u.username as userName, 
 			       avg (suggested_level) as avgDifficulty,
 			       e.status, 
 			       e.license, 
 			       e.reference
-			FROM   exercise e INNER JOIN users u ON e.fk_user_id= u.ID
+			FROM   exercise e INNER JOIN user u ON e.fk_user_id= u.id
 			LEFT OUTER JOIN exercise_score s ON e.id=s.fk_exercise_id
 			LEFT OUTER JOIN exercise_level l ON e.id=l.fk_exercise_id
 			WHERE (e.id = %d AND e.status='Available')
@@ -226,7 +234,7 @@ class PluginSubset{
 	 */
 	public function admSaveResponse($data){
 		try{
-			$userId = self::$userId;
+			$userId = $this->consumer_user_id;
 			if(!$userId)
 				return;
 			set_time_limit(0);
@@ -259,11 +267,10 @@ class PluginSubset{
 				throw new Exception($e->getMessage());
 			}
 
-
 			$insert = "INSERT INTO response (fk_user_id, fk_exercise_id, file_identifier, is_private, thumbnail_uri, source, duration, adding_date, rating_amount, character_name, fk_subtitle_id) ";
 			$insert = $insert . "VALUES ('%d', '%d', '%s', 1, '%s', '%s', '%s', now(), 1, '%s', %d ) ";
 
-			$result = $this->db->_insert($insert, $userId , $data->exerciseId, $data->fileIdentifier, $thumbnail, $data->source, $duration, $data->characterName, $data->subtitleId );
+			$result = $this->db->_insert($insert, $userId , $data->exerciseId, $data->fileIdentifier, $thumbnail, 'red5', $duration, $data->characterName, $data->subtitleId );
 			if($result){
 				$r = new stdClass();
 				$r->responseId = $result;
@@ -272,7 +279,7 @@ class PluginSubset{
 				else
 				$r->responseThumbnail = 'http://' . $_SERVER['HTTP_HOST'] . '/resources/images/thumbs/nothumb.png';
 				$r->responseFileIdentifier = $data->fileIdentifier;
-				//$this->linkToPlaceholderVideo($r->responseFileIdentifier);
+				
 				return $r;
 			} else {
 				return false;
@@ -294,18 +301,6 @@ class PluginSubset{
 			$this->exerciseFolder = $result[1] ? $result[1]->prefValue : '';
 			$this->responseFolder = $result[2] ? $result[2]->prefValue : '';
 		}
-	}
-
-	private function linkToPlaceholderVideo($responseIdentifier){
-		$this->_getResourceDirectories();
-		$linkName = $this->conf->red5Path . '/' . $this->responseFolder . '/' . $responseIdentifier . '_merge.flv';
-		$target = $this->conf->red5Path . '/placeholder_merge.flv';
-
-		if(!is_readable($target) || !is_writable($this->conf->red5Path . '/'. $this->responseFolder) )
-		throw new Exception("You don't have permissions to read/write in the specified folders");
-
-		if( !symlink($target, $linkName)  )
-		throw new Exception ("Couldn't create a link for that target");
 	}
 
 	public function admGetResponseById($responseId){
