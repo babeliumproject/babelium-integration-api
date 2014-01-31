@@ -51,10 +51,9 @@ class VideoCollage{
 	
 	public function makeResponseCollages(){
 		$responsesToMerge = false;
-		//Only retrieve the responses made by the users that use the Moodle Babelium plugin
+		//Only retrieve the responses made by users that use the services
 		$sql = "SELECT DISTINCT(r.file_identifier) as responseName 
-		FROM response r INNER JOIN users u ON r.fk_user_id=u.ID 
-               INNER JOIN moodle_api um ON u.ID=um.fk_user_id";
+				FROM response r INNER JOIN user u ON r.fk_user_id=u.id WHERE u.fk_serviceconsumer_id>1"; 
 		
 		$result = $this->conn->_multipleSelect($sql);
 		if($result){
@@ -90,7 +89,6 @@ class VideoCollage{
 			$responsePath = $this->red5Path.'/'.$this->responseFolder.'/'.$responseName.'.flv';
 			$tmpFolder = $this->filePath.'/'.$responseName;	
 			try {
-				$this->unlinkPlaceHolder($responseName);
 				if(file_exists($this->red5Path.'/'.$this->responseFolder.'/'.$responseName.'_merge.flv')){
 					//echo "Response ".$responseName.".flv is already merged\n";
 					return false;
@@ -178,48 +176,12 @@ class VideoCollage{
 			} catch (Exception $e){
 				//The workflow failed at some point. Remove the files created up until that point.
 				$this->removeTempFolder($tmpFolder);
-				$this->linkPlaceHolder($responseName);
 				echo $e->getMessage();
 				return false;
 			}
 		} else {
 			echo ("Response not found or exercise not available\n");
 			return false;
-		}
-	}
-	
-	public function addMissingPlaceHolderLinks(){
-		$sql = "SELECT r.file_identifier FROM response r INNER JOIN moodle_api ma ON r.fk_user_id = ma.fk_user_id WHERE r.id>0";
-		$results = $this->conn->_multipleSelect($sql);
-		if($results){
-			foreach($results as $result){
-				$responseName=$result->file_identifier;
-				$this->linkPlaceHolder($responseName);
-			}
-		}
-	}
-	
-	private function linkPlaceHolder($responseName){
-		$linkName = $this->red5Path . '/' . $this->responseFolder . '/' . $responseName . '_merge.flv';
-		$target = $this->red5Path . '/placeholder_merge.flv';
-		
-		if(!is_readable($target) || !is_writable($this->red5Path . '/'. $this->responseFolder) )
-			echo "You don't have permissions to read/write in the specified folders: ". $target.", ".$this->red5Path . '/'. $this->responseFolder."\n";
-		if( is_link($linkName) ){
-			echo "Can't create a link. A link with that name already exists: ".$linkName."\n";
-		} elseif(is_file($linkName)) {
-			echo "Can't create a link. A file with that name already exists: ".$linkName."\n";
-		} else {
-			if( !@symlink($target, $linkName)  )
-				echo "Couldn't create a link for that target: ".$linkName ." -> ".$target."\n";
-		}
-	}
-	
-	private function unlinkPlaceHolder($responseName){
-		$linkName = $this->red5Path.'/'.$this->responseFolder.'/'.$responseName.'_merge.flv';
-		if( is_link($linkName) ){
-			if(!@unlink($linkName))
-				echo "Error while removing the placeholder link: ".$linkName."\n";
 		}
 	}
 

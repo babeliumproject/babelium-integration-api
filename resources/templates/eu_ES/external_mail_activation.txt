@@ -1,0 +1,19 @@
+Ongietorri {PROJECT_NAME}era.
+
+{PROJECT_SITE} webgunerako kontu hau automatikoki sortua izan da.
+
+Mesedez gorde mezu hau etorkizunean erreferentzia gisa erabiltzeko. Zure kontuaren informazioa:
+
+----------------------------
+Erabiltzaile Izena: {USERNAME}
+			
+Pasahitza: {PASSWORD}
+----------------------------
+
+Mesedez, hurrengo esteka bisita ezazu zure kontua aktibatzeko:
+
+{ACTIVATION_LINK}
+
+Eskerrikasko izena emateagatik,
+
+Babelium taldea

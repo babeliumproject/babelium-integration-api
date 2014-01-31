@@ -4,9 +4,12 @@ if(!isset($_SESSION)){
     session_start();
 }
 
-require_once 'utils/Config.php';
-require_once 'utils/Datasource.php';
-require_once 'utils/VideoProcessor.php';
+if(!defined('BABELIUM_SERVICE_PATH'))
+    define('BABELIUM_SERVICE_PATH','/var/www/babelium/services');
+
+require_once BABELIUM_SERVICE_PATH . '/utils/Config.php';
+require_once BABELIUM_SERVICE_PATH . '/utils/Datasource.php';
+require_once BABELIUM_SERVICE_PATH . '/utils/VideoProcessor.php';
 
 /**
  * This is a minimum subset of the services Babelium provides, quickly piled up

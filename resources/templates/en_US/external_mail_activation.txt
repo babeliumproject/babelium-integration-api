@@ -1,0 +1,19 @@
+Welcome to {PROJECT_NAME}.
+
+This is an automatically generated account for {PROJECT_SITE}.
+
+Please keep this e-mail for your records. Your account information is as follows:
+
+----------------------------
+Username: {USERNAME}
+			
+Password: {PASSWORD}
+----------------------------
+
+Please visit the following link in order to activate your account:
+
+{ACTIVATION_LINK}
+
+Thank you for registering,
+
+The Babelium team

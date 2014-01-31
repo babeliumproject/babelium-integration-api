@@ -69,8 +69,8 @@ class ZendRestJson extends Zend_Rest_Server
 	}
 
 	private function initClasses(){
-		require_once dirname(__FILE__) . '/services/utils/Config.php';
-		require_once dirname(__FILE__) . '/services/utils/Datasource.php';
+		require_once dirname(__FILE__) . '/../services/utils/Config.php';
+		require_once dirname(__FILE__) . '/../services/utils/Datasource.php';
 		date_default_timezone_set('UTC');
 		$this->cfg = new Config();
 		$this->db = new DataSource($this->cfg->host, $this->cfg->db_name, $this->cfg->db_username, $this->cfg->db_password);
@@ -432,7 +432,7 @@ class ZendRestJson extends Zend_Rest_Server
 		try{
 			//Query the DB for the provided accessKey
 			$tablename = 'serviceconsumer';
-			$sql = "SELECT id, access_key, secret_access_key, domain FROM %s WHERE access_key = '%s' AND enabled=1";
+			$sql = "SELECT id, access_key, secret_access_key, domain FROM %s WHERE access_key = '%s' AND enabled=1 AND id>1";
 			$service_consumer = $this->db->_singleSelect($sql,$tablename,$cl_access_key);
 		} catch(Exception $e){
 			throw new Exception("Not found",404);
@@ -583,6 +583,7 @@ class ZendRestJson extends Zend_Rest_Server
 	 */
 	private function _helperParseLocale($locale){
 		$parsed_locale='en_US';
+		$region=null;
 		$available_languages=array('en_US','es_ES','eu_ES','fr_FR, de_DE');
 		if($locale){
 			$parts = explode("_", $locale);
