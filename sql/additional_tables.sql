@@ -26,7 +26,7 @@ CREATE TABLE `serviceconsumer_log` (
   `consumertime` bigint(10) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `fk_serviceconsumer_log_1` (`fk_serviceconsumer_id`),
-  CONSTRAINT `fk_serviceconsumer_log_1` FOREIGN KEY (`fk_serviceconsumer_id`) REFERENCES `serviceconsumer` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `fk_serviceconsumer_log_1` FOREIGN KEY (`fk_serviceconsumer_id`) REFERENCES `serviceconsumer` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `role` (
@@ -55,7 +55,7 @@ CREATE TABLE `course` (
   `timemodified` bigint(10) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `fk_course_1` (`fk_serviceconsumer_id`),
-  CONSTRAINT `fk_course_1` FOREIGN KEY (`fk_serviceconsumer_id`) REFERENCES `serviceconsumer` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `fk_course_1` FOREIGN KEY (`fk_serviceconsumer_id`) REFERENCES `serviceconsumer` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `course_groups` (
@@ -67,7 +67,7 @@ CREATE TABLE `course_groups` (
   `timemodified` bigint(10) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `fk_course_groups_1` (`fk_course_id`),
-  CONSTRAINT `fk_course_groups_1` FOREIGN KEY (`fk_course_id`) REFERENCES `course` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `fk_course_groups_1` FOREIGN KEY (`fk_course_id`) REFERENCES `course` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `assignment` (
@@ -84,7 +84,7 @@ CREATE TABLE `assignment` (
   `maxattempts` int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `fk_assignment_1` (`fk_course_id`),
-  CONSTRAINT `fk_assignment_1` FOREIGN KEY (`fk_course_id`) REFERENCES `course` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `fk_assignment_1` FOREIGN KEY (`fk_course_id`) REFERENCES `course` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `assignment_submission` (
@@ -100,9 +100,9 @@ CREATE TABLE `assignment_submission` (
   KEY `fk_assignment_submission_1` (`fk_assignment_id`),
   KEY `fk_assignment_submission_2` (`fk_user_id`),
   KEY `fk_assignment_submission_3` (`fk_group_id`),
-  CONSTRAINT `fk_assignment_submission_1` FOREIGN KEY (`fk_assignment_id`) REFERENCES `assignment` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_assignment_submission_2` FOREIGN KEY (`fk_user_id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_assignment_submission_3` FOREIGN KEY (`fk_group_id`) REFERENCES `course_groups` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `fk_assignment_submission_1` FOREIGN KEY (`fk_assignment_id`) REFERENCES `assignment` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_assignment_submission_2` FOREIGN KEY (`fk_user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_assignment_submission_3` FOREIGN KEY (`fk_group_id`) REFERENCES `course_groups` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `rel_course_role_user` (
@@ -115,9 +115,9 @@ CREATE TABLE `rel_course_role_user` (
   KEY `fk_rel_course_role_user_1` (`fk_course_id`),
   KEY `fk_rel_course_role_user_2` (`fk_role_id`),
   KEY `fk_rel_course_role_user_3` (`fk_user_id`),
-  CONSTRAINT `fk_rel_course_role_user_1` FOREIGN KEY (`fk_course_id`) REFERENCES `course` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_rel_course_role_user_2` FOREIGN KEY (`fk_role_id`) REFERENCES `role` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_rel_course_role_user_3` FOREIGN KEY (`fk_user_id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `fk_rel_course_role_user_1` FOREIGN KEY (`fk_course_id`) REFERENCES `course` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_rel_course_role_user_2` FOREIGN KEY (`fk_role_id`) REFERENCES `role` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_rel_course_role_user_3` FOREIGN KEY (`fk_user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `rel_coursegroup_user` (
@@ -128,8 +128,8 @@ CREATE TABLE `rel_coursegroup_user` (
   PRIMARY KEY (`id`),
   KEY `fk_rel_coursegroup_user_1` (`fk_group_id`),
   KEY `fk_rel_coursegroup_user_2` (`fk_user_id`),
-  CONSTRAINT `fk_rel_coursegroup_user_1` FOREIGN KEY (`fk_group_id`) REFERENCES `course_groups` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_rel_coursegroup_user_2` FOREIGN KEY (`fk_user_id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `fk_rel_coursegroup_user_1` FOREIGN KEY (`fk_group_id`) REFERENCES `course_groups` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_rel_coursegroup_user_2` FOREIGN KEY (`fk_user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
