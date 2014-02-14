@@ -290,7 +290,7 @@ class ZendRestJson extends Zend_Rest_Server
 
 		//Log the fault in the server
 		$message = empty($message) ? implode(",", $json['response']) : $message;
-		error_log("[".date("d/m/Y H:i:s")."] referer=".$this->r_referer." origin=".$this->r_origin." ip=".$this->r_ip." access_key=".$this->r_access_key." message=".$message."\n",3,"/tmp/moodle.log");	
+		error_log("[".date("d/m/Y H:i:s")."] referer=".$this->r_referer." origin=".$this->r_origin." ip=".$this->r_ip." access_key=".$this->r_access_key." message=".$message."\n",3,"/var/www/vhosts/babelium/logs/moodle.log");	
 
 		return $json;
 	}
@@ -547,15 +547,12 @@ class ZendRestJson extends Zend_Rest_Server
 				$sql_localeinsert = "INSERT INTO user_languages (fk_user_id, language, level, purpose, positives_to_next_level) VALUES (%d, '%s',%d,'%s',%d)";
 				$user_locale_id = $this->db->_insert($sql_localeinsert, $user_id, $default_locale, self::MOTHER_TONGUE_LEVEL,'evaluate',self::LEVEL_THRESHOLD);
 
-				//Give the user a role in the course
-				$sql = "INSERT INTO rel_course_role_user (fk_role_id,fk_course_id,fk_user_id,timemodified) VALUES (%d,%d,%d,%d)";
-				$crole = $this->db->_insert($sql,$role_id,$courseid,$user_id,time());
-
-				if($user_id && $crole && $user_locale_id){
+				if($user_id && $user_locale_id){
 					$this->db->_endTransaction();
 				} else {
 					throw new Exception("Database error");
 				}
+				
 			} catch (Exception $e) {
 				$this->db->_failedTransaction();
 				throw new Exception("Server Internal error", 500);
@@ -565,12 +562,25 @@ class ZendRestJson extends Zend_Rest_Server
 			$user_active = $user->active;
 		}
 
-		//Send an email with the access credentials
-		if($role_id==self::ROLE_INSTRUCTOR && !$user_active){
+		//Give the user a role in the course
+		$sql_courseroleselect = "SELECT * FROM rel_course_role_user WHERE fk_role_id=%d AND fk_course_id=%d AND fk_user_id=%d";
+		$courserole = $this->db->_singleSelect($sql_courseroleselect,$role_id,$courseid,$user_id);
+		if(!$courserole){
+			$sql_courseroleinsert = "INSERT INTO rel_course_role_user (fk_role_id,fk_course_id,fk_user_id,timemodified) VALUES (%d,%d,%d,%d)";
+			$crole = $this->db->_insert($sql_courseroleinsert,$role_id,$courseid,$user_id,time());
+		}
+		$sql_wasinstructorbefore = "SELECT COUNT(*) as insroles FROM rel_course_role_user WHERE fk_role_id=%d AND fk_user_id=%d";
+		$instructorcourseroles = $this->db->_singleSelect($sql_wasinstructorbefore, self::ROLE_INSTRUCTOR, $user_id);
+		$insroles = $instructorcourseroles ? $instructorcourseroles->insroles : 0; 
+
+		//Send an email with the access credentials if the request role is Instructor the user is not enabled and 
+		//the course role was inserted in this request (which should happen only once)
+		if($role_id==self::ROLE_INSTRUCTOR && !$user_active && $crole && $insroles==1){
 			$sql_userupdate = "UPDATE user SET password='%s', activation_hash='%s' WHERE id=%d";
 			$this->db->_update($sql_userupdate, $hashed_password, $activationhash, $user_id);
 			$this->_helperSendUserEmail($username,$password,$lang,$activationhash);
 		}
+
 
 		return $user_id;
 	}
@@ -649,7 +659,7 @@ class ZendRestJson extends Zend_Rest_Server
 	 */
 	private function _helperSendUserEmail($username, $password, $lang, $activationhash){
 		//TODO delegate this task to task queue to avoid lag in the calls
-		require_once dirname(__FILE__) . '/services/utils/Mailer.php';
+		require_once dirname(__FILE__) . '/../services/utils/Mailer.php';
 		
 		$mail = new Mailer($username);
 		$activation_link = htmlspecialchars('http://'.$_SERVER['HTTP_HOST'].'/Main.html#/activation/activate/hash='.$activationhash.'&user='.$username);
