@@ -102,15 +102,15 @@ class PluginSubset{
 			       e.source, 
 			       e.name, 
 			       e.thumbnail_uri as thumbnailUri,
-       			       e.adding_date as addingDate, 
+       			   e.adding_date as addingDate, 
 			       e.duration, 
-			       u.name as userName, 
-       			       avg (suggested_level) as avgDifficulty,
+			       u.username as userName, 
+       			   avg (suggested_level) as avgDifficulty,
 			       e.status, 
 			       e.license, 
 			       e.reference
 			       FROM   exercise e 
-				 		INNER JOIN users u ON e.fk_user_id= u.ID
+				 		INNER JOIN user u ON e.fk_user_id= u.id
 				 		INNER JOIN subtitle t ON e.id=t.fk_exercise_id
        				    LEFT OUTER JOIN exercise_score s ON e.id=s.fk_exercise_id
        				    LEFT OUTER JOIN exercise_level l ON e.id=l.fk_exercise_id
@@ -136,12 +136,12 @@ class PluginSubset{
 			       e.thumbnail_uri as thumbnailUri,
 			       e.adding_date as addingDate, 
 			       e.duration, 
-			       u.name as userName, 
+			       u.username as userName, 
 			       avg (suggested_level) as avgDifficulty,
 			       e.status, 
 			       e.license, 
 			       e.reference
-			FROM   exercise e INNER JOIN users u ON e.fk_user_id= u.ID
+			FROM   exercise e INNER JOIN user u ON e.fk_user_id= u.id
 			LEFT OUTER JOIN exercise_score s ON e.id=s.fk_exercise_id
 			LEFT OUTER JOIN exercise_level l ON e.id=l.fk_exercise_id
 			WHERE (e.id = %d AND e.status='Available')
