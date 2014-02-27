@@ -53,8 +53,8 @@ class VideoCollage{
 		$responsesToMerge = false;
 		//Only retrieve the responses made by the users that use the Moodle Babelium plugin
 		$sql = "SELECT DISTINCT(r.file_identifier) as responseName 
-		FROM response r INNER JOIN users u ON r.fk_user_id=u.ID 
-               INNER JOIN moodle_api um ON u.ID=um.fk_user_id";
+				FROM response r INNER JOIN user u ON r.fk_user_id=u.ID 
+                INNER JOIN moodle_api um ON u.id=um.fk_user_id";
 		
 		$result = $this->conn->_multipleSelect($sql);
 		if($result){
@@ -77,10 +77,10 @@ class VideoCollage{
 
 		$sql = "SELECT e.name, r.file_identifier, r.character_name as chosen_role, sl.show_time, sl.hide_time, er.character_name
 			    FROM exercise e 
-     			     INNER JOIN response r ON e.id=r.fk_exercise_id
-     			     INNER JOIN subtitle s ON r.fk_subtitle_id=s.id
-     			     INNER JOIN subtitle_line sl ON sl.fk_subtitle_id=s.id
-     			     INNER JOIN exercise_role er ON er.id=sl.fk_exercise_role_id
+     			INNER JOIN response r ON e.id=r.fk_exercise_id
+     		    INNER JOIN subtitle s ON r.fk_subtitle_id=s.id
+     			INNER JOIN subtitle_line sl ON sl.fk_subtitle_id=s.id
+     			INNER JOIN exercise_role er ON er.id=sl.fk_exercise_role_id
 			    WHERE (e.status='Available' AND s.complete=1 AND r.file_identifier='%s')";
 
 		$results = $this->conn->_multipleSelect($sql, $responseName);

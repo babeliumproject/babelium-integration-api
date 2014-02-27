@@ -25,7 +25,7 @@ CREATE TABLE `moodle_api` (
   `date_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`access_key`),
   KEY `fk_moodle_api_1` (`fk_user_id`),
-  CONSTRAINT `fk_moodle_api_1` FOREIGN KEY (`fk_user_id`) REFERENCES `users` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_moodle_api_1` FOREIGN KEY (`fk_user_id`) REFERENCES `user` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

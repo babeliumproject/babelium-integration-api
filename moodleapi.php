@@ -72,8 +72,9 @@ function getAPIKeys($user, $domain, $raw_domain){
 	}
 
 	//Check whether the user provided a username or an email
-	$field = Mailer::checkEmail($user) ? "email" : "name";
-	$sql = "SELECT ma.allowed_referer, u.ID, u.name FROM moodle_api ma RIGHT OUTER JOIN users u ON ma.fk_user_id=u.ID WHERE u.%s='%s' AND u.active=1";
+	$field = Mailer::checkEmail($user) ? "email" : "username";
+	$sql = "SELECT ma.allowed_referer, u.id, u.username 
+            FROM moodle_api ma RIGHT OUTER JOIN user u ON ma.fk_user_id=u.id WHERE u.%s='%s' AND u.active=1";
 	if(!$query_result = $db->_singleSelect($sql, $field, $user)){
 		return;
 	}
@@ -84,8 +85,8 @@ function getAPIKeys($user, $domain, $raw_domain){
 	}
 	
 	$sql = "INSERT INTO moodle_api (`access_key`, `secret_access_key`, `allowed_referer`, `raw_referer`, `fk_user_id`, `date_created`)
-		VALUES ('%s', '%s', '%s', '%s', '%s', DEFAULT)"; 
-	$userId = $query_result->ID;
+            VALUES ('%s', '%s', '%s', '%s', '%s', DEFAULT)"; 
+	$userId = $query_result->id;
 	$accesskey = str_makerand(20,true,true,false);
 	$secretaccesskey = str_makerand(40,true,true,true);
 
@@ -104,7 +105,7 @@ function getAPIKeys($user, $domain, $raw_domain){
 
 	$args = array(
 			'PROJECT_NAME' => 'Babelium Project',
-			'USERNAME' => $query_result->name,
+			'USERNAME' => $query_result->username,
 			'DOMAIN' => $domain,
 			'ACCESS_KEY' => $accesskey,
 			'SECRET_ACCESS_KEY' => $secretaccesskey,
