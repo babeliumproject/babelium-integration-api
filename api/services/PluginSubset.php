@@ -1,8 +1,9 @@
 <?php
 
-require_once 'utils/Config.php';
-require_once 'utils/Datasource.php';
-require_once 'utils/VideoProcessor.php';
+
+require_once dirname(__FILE__) . '/../../services/utils/Config.php';
+require_once dirname(__FILE__) . '/../../services/utils/Datasource.php';
+require_once dirname(__FILE__) . '/../../services/utils/VideoProcessor.php';
 
 /**
  * This is a minimum subset of the services Babelium provides, quickly piled up
@@ -90,7 +91,7 @@ class PluginSubset{
 		if ($userId)
 			//$where = " AND u.ID = ". $userId . " " ;
 			//sprintf() if you're going to use % as a character scape it putting it twice %%, otherwise there'll be problems while parsing your string
-			$where = " AND ( u.ID = ". $userId ." OR (e.license like 'cc-%%' )) ";
+			$where = " AND ( u.id = ". $userId ." OR (e.license like 'cc-%%' )) ";
 		else
 			return;
 
@@ -263,7 +264,7 @@ class PluginSubset{
 			$insert = "INSERT INTO response (fk_user_id, fk_exercise_id, file_identifier, is_private, thumbnail_uri, source, duration, adding_date, rating_amount, character_name, fk_subtitle_id) ";
 			$insert = $insert . "VALUES ('%d', '%d', '%s', 1, '%s', '%s', '%s', now(), 1, '%s', %d ) ";
 
-			$result = $this->db->_insert($insert, $userId , $data->exerciseId, $data->fileIdentifier, $thumbnail, $data->source, $duration, $data->characterName, $data->subtitleId );
+			$result = $this->db->_insert($insert, $userId , $data->exerciseId, $data->fileIdentifier, $thumbnail, 'Red5', $duration, $data->characterName, $data->subtitleId );
 			if($result){
 				$r = new stdClass();
 				$r->responseId = $result;
@@ -296,6 +297,7 @@ class PluginSubset{
 		}
 	}
 
+	/*
 	private function linkToPlaceholderVideo($responseIdentifier){
 		$this->_getResourceDirectories();
 		$linkName = $this->conf->red5Path . '/' . $this->responseFolder . '/' . $responseIdentifier . '_merge.flv';
@@ -307,6 +309,7 @@ class PluginSubset{
 		if( !symlink($target, $linkName)  )
 		throw new Exception ("Couldn't create a link for that target");
 	}
+	*/
 
 	public function admGetResponseById($responseId){
 		try{
@@ -328,7 +331,5 @@ class PluginSubset{
 			throw new Exception($e->getMessage());
 		}
 	}
-
-
 }
 ?>

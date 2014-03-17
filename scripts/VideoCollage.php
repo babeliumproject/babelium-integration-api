@@ -2,7 +2,7 @@
 
 
 if(!defined('CLI_SERVICE_PATH'))
-	define('CLI_SERVICE_PATH', '/var/www/embedbabelium/api/services');
+	define('CLI_SERVICE_PATH', '/var/www/babelium/services');
 
 require_once CLI_SERVICE_PATH . '/utils/Datasource.php';
 require_once CLI_SERVICE_PATH . '/utils/Config.php';
@@ -90,7 +90,7 @@ class VideoCollage{
 			$responsePath = $this->red5Path.'/'.$this->responseFolder.'/'.$responseName.'.flv';
 			$tmpFolder = $this->filePath.'/'.$responseName;	
 			try {
-				$this->unlinkPlaceHolder($responseName);
+				//$this->unlinkPlaceHolder($responseName);
 				if(file_exists($this->red5Path.'/'.$this->responseFolder.'/'.$responseName.'_merge.flv')){
 					//echo "Response ".$responseName.".flv is already merged\n";
 					return false;
@@ -178,7 +178,7 @@ class VideoCollage{
 			} catch (Exception $e){
 				//The workflow failed at some point. Remove the files created up until that point.
 				$this->removeTempFolder($tmpFolder);
-				$this->linkPlaceHolder($responseName);
+				//$this->linkPlaceHolder($responseName);
 				echo $e->getMessage();
 				return false;
 			}
@@ -188,6 +188,7 @@ class VideoCollage{
 		}
 	}
 	
+	/*
 	public function addMissingPlaceHolderLinks(){
 		$sql = "SELECT r.file_identifier FROM response r INNER JOIN moodle_api ma ON r.fk_user_id = ma.fk_user_id WHERE r.id>0";
 		$results = $this->conn->_multipleSelect($sql);
@@ -222,6 +223,7 @@ class VideoCollage{
 				echo "Error while removing the placeholder link: ".$linkName."\n";
 		}
 	}
+	*/
 
 	private function makeTempFolder($tmpFolder){
 		if(!file_exists($tmpFolder)){

@@ -35,6 +35,9 @@ class ZendRestJson extends Zend_Rest_Server
 
 	protected $_faultResult = false;
 	
+	private $db;
+	private $cfg;
+	
 	private $allowed_time_skew = 900; //allowed time skew in seconds
 
 	private $r_access_key = '';
@@ -61,6 +64,14 @@ class ZendRestJson extends Zend_Rest_Server
 		}
 	}
 	
+	private function initClasses(){
+		require_once dirname(__FILE__) . '/../services/utils/Config.php';
+		require_once dirname(__FILE__) . '/../services/utils/Datasource.php';
+		date_default_timezone_set('UTC');
+		$this->cfg = new Config();
+		$this->db = new DataSource($this->cfg->host, $this->cfg->db_name, $this->cfg->db_username, $this->cfg->db_password);
+	}
+	
 	/**
 	 * Implement Zend_Server_Interface::handle()
 	 *
@@ -72,6 +83,8 @@ class ZendRestJson extends Zend_Rest_Server
 	{
 		$this->setHeaders();
 		$this->requestHeaders();
+		$this->initClasses();
+		
 		if (!$request) {
 			$request = $_REQUEST;
 		}
@@ -382,25 +395,16 @@ class ZendRestJson extends Zend_Rest_Server
 		if(!$cl_access_key || !$cl_signature || !$cl_date || !$r_method )
 			throw new Exception("Malformed authorization header",400);
 		
-		//Date header check
-		date_default_timezone_set('UTC');
-		//$s_date = date(DATE_RFC1123);
 		$s_timestamp = time();	
 		if(($cl_timestamp = strtotime($cl_date)) == FALSE)
 			throw new Exception("Malformed date header",400);
 			
-		//Check if the provided access key is registered in our database and if the request is coming from the expected referer
-		require_once dirname(__FILE__) . '/services/utils/Config.php';
-		require_once dirname(__FILE__) . '/services/utils/Datasource.php';
 		try{
-			$settings = new Config();
-			$db = new DataSource($settings->host, $settings->db_name, $settings->db_username, $settings->db_password);
-			
 			//Query the DB for the provided accessKey
 			$sql = "SELECT access_key, secret_access_key, allowed_referer, fk_user_id FROM moodle_api WHERE access_key = '%s' LIMIT 1";
-			$result = $db->_singleSelect($sql,$cl_access_key);
+			$result = $this->db->_singleSelect($sql,$cl_access_key);
 		} catch(Exception $e){
-			throw new Exception("Not found",404);
+			throw new Exception("Error retrieving user credentials",500);
 		}
 		if($result){
 			$s_secret_access_key = $result->secret_access_key;
@@ -414,7 +418,7 @@ class ZendRestJson extends Zend_Rest_Server
 		if( $cl_timestamp > ($s_timestamp - $this->allowed_time_skew) &&
 		    $cl_timestamp < ($s_timestamp + $this->allowed_time_skew) ){
 	
-		    	$s_stringtosign = utf8_encode($r_method . "\n" . $cl_date . "\n" . $s_referer);
+		    $s_stringtosign = utf8_encode($r_method . "\n" . $cl_date . "\n" . $s_referer);
 		    	
 			$digest = hash_hmac("sha256", $s_stringtosign, $s_secret_access_key, false);
 			$s_signature = base64_encode($digest);
