@@ -41,11 +41,17 @@ To run the development version of Babelium first clone the git repository.
 
 Now the entire project should be in the `babelium-moodle-plugins/` directory.
 
-##Prerequisites
+##Minimum server requirements
 
 * Moodle 1.9.10+
 * Babelium standalone site
 * php-curl (in the Moodle server)
+
+##Minimum client requirements
+
+* Adobe Flash Player 11.1
+* Internet Explorer 8, Firefox 13, Chrome 20
+* Broadband connection (1MB/512K)
  
 You need to have both Moodle and Babelium standalone site installed (in the same or different servers) to be able to use Babelium's Moodle plugins. php-curl also needs to be installed on your Moodle server to be able to make RPC-API requests to the Babelium server.
 
