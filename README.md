@@ -9,7 +9,8 @@ The plug-ins are currently available in 4 languages: English, Spanish, Basque an
 
 **Table of contents**
 - [Cloning the repository](#cloning-the-repository)
-- [Prerequisites](#prerequisites)
+- [Minimum server requirements](#minimum-server-requirements)
+- [Minimum client requirements](#minimum-client-requirements)
 - [Installing the Moodle 1.9 plug-ins](#installing-the-moodle-19-plug-ins)
 	- [Enabling the plug-in](#enabling-the-plug-in)
 	- [Create a sample Babelium assignment](#create-a-sample-babelium-assignment)
@@ -47,13 +48,13 @@ Now the entire project should be in the `babelium-moodle-plugins/` directory.
 * Babelium standalone site
 * php-curl (in the Moodle server)
 
+You need to have both Moodle and Babelium standalone site installed (in the same or different servers) to be able to use Babelium's Moodle plugins. php-curl also needs to be installed on your Moodle server to be able to make RPC-API requests to the Babelium server.
+
 ##Minimum client requirements
 
 * Adobe Flash Player 11.1
 * Internet Explorer 8, Firefox 13, Chrome 20
 * Broadband connection (1MB/512K)
- 
-You need to have both Moodle and Babelium standalone site installed (in the same or different servers) to be able to use Babelium's Moodle plugins. php-curl also needs to be installed on your Moodle server to be able to make RPC-API requests to the Babelium server.
 
 ##Installing the Moodle 1.9 plug-ins
 Copy the `common` and `moodle19/mod` folders to Moodle's home directory.
