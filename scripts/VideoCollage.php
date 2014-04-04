@@ -85,6 +85,7 @@ class VideoCollage{
 
 		$results = $this->conn->_multipleSelect($sql, $responseName);
 		if($results){
+			$results = $this->sort_list_by_field($results,'show_time',SORT_NUMERIC);
 			$exerciseName = $results[0]->name;
 			$exercisePath = $this->red5Path.'/'.$this->exerciseFolder.'/'.$exerciseName.'.flv';
 			$responsePath = $this->red5Path.'/'.$this->responseFolder.'/'.$responseName.'.flv';
@@ -224,6 +225,24 @@ class VideoCollage{
 		}
 	}
 	*/
+	
+	private function sort_list_by_field($list, $field, $type=SORT_STRING, $order=SORT_ASC){
+		if (!$list || !$field || !is_array($list)) return;
+		if (!in_array($order,array(SORT_ASC,SORT_DESC)) || !in_array($type,array(SORT_REGULAR,SORT_NUMERIC,SORT_STRING,SORT_LOCALE_STRING))) return;
+		$sortedList = $list;
+		$sortingArray = array();
+		foreach($sortedList as $listItem){
+			foreach($listItem as $key=>$value){
+				if(!isset($sortingArray[$key])){
+					$sortingArray[$key] = array();
+				}
+				//Force the lowercase conversion of the values to perform a case insensitive sorting
+				$sortingArray[$key][] = mb_strtolower($value,'UTF-8');
+			}
+		}
+		array_multisort($sortingArray[$field], $order, $type, $sortedList);
+		return $sortedList;
+	}
 
 	private function makeTempFolder($tmpFolder){
 		if(!file_exists($tmpFolder)){
