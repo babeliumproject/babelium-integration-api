@@ -9,7 +9,8 @@ The plug-ins are currently available in 4 languages: English, Spanish, Basque an
 
 **Table of contents**
 - [Cloning the repository](#cloning-the-repository)
-- [Prerequisites](#prerequisites)
+- [Minimum server requirements](#minimum-server-requirements)
+- [Minimum client requirements](#minimum-client-requirements)
 - [Installing the Moodle 1.9 plug-ins](#installing-the-moodle-19-plug-ins)
 	- [Enabling the plug-in](#enabling-the-plug-in)
 	- [Create a sample Babelium assignment](#create-a-sample-babelium-assignment)
@@ -41,13 +42,19 @@ To run the development version of Babelium first clone the git repository.
 
 Now the entire project should be in the `babelium-moodle-plugins/` directory.
 
-##Prerequisites
+##Minimum server requirements
 
 * Moodle 1.9.10+
 * Babelium standalone site
 * php-curl (in the Moodle server)
- 
+
 You need to have both Moodle and Babelium standalone site installed (in the same or different servers) to be able to use Babelium's Moodle plugins. php-curl also needs to be installed on your Moodle server to be able to make RPC-API requests to the Babelium server.
+
+##Minimum client requirements
+
+* Adobe Flash Player 11.1
+* Internet Explorer 8, Firefox 13, Chrome 20
+* Broadband connection (1MB/512K)
 
 ##Installing the Moodle 1.9 plug-ins
 Copy the `common` and `moodle19/mod` folders to Moodle's home directory.
@@ -227,17 +234,6 @@ Copy the video merging script to the Babelium script folder:
 
 	$ cd babelium-moodle-plugins/patches
 	$ cp script/* <babelium_script_directory>/
-
-Copy the placeholder video that will be displayed while the videos are still not merged:
-
-	$ cd babelium-moodle-plugins/patches/media
-	$ cp placeholder_merge.flv <red5_home>/webapps/vod/streams
-
-[Inkscape]: http://inkscape.org/
-
-**NOTE:** The provided placeholder video file displays a message in Basque, Spanish and English (the message reads "Your video is still processing. Sorry for the inconvenience."). If you wish to display another message or want to display a message in some other language you can make your own placeholde video. For that purpose, we provide the original vectorial image (the video loop source) of placeholder_merge.flv in `babelium-moodle-plugins/patches/media/placeholder_merge.svg`. You can edit this file using the open source application [Inkscape][]. When you are done editing, you have to export the SVG file as PNG (File -> Export Bitmap...) to use it as an input for ffmpeg. The following ffmpeg command creates a 20 second video using the PNG image we exported as loop source:
-
-	$ ffmpeg -y -loop 1 -f image2 -i placeholder_merge.png -ar 22050 -f s16le -i /dev/zero -r 25 -t 25 -s 426x240 -g 25 -qmin 3 -b:v 512k placeholder_merge.flv
 
 Apply the provided SQL patch to enable Moodle site registration
 
