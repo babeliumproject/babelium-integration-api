@@ -91,7 +91,6 @@ class VideoCollage{
 			$responsePath = $this->red5Path.'/'.$this->responseFolder.'/'.$responseName.'.flv';
 			$tmpFolder = $this->filePath.'/'.$responseName;	
 			try {
-				//$this->unlinkPlaceHolder($responseName);
 				if(file_exists($this->red5Path.'/'.$this->responseFolder.'/'.$responseName.'_merge.flv')){
 					//echo "Response ".$responseName.".flv is already merged\n";
 					return false;
@@ -145,14 +144,14 @@ class VideoCollage{
 				$t->start = $results[count($results)-1]->hide_time;
 				$t->end =  -1;
 				$t->volume = -1;
-				if(($t->end - $t->start) > 0)
-					$split_times[] = $t;
+				//if(($t->end - $t->start) > 0)
+				$split_times[] = $t;
 
 				//Make audio subsamples following the subtitle times
 				for($i=0;$i<count($split_times);$i++){
 					$outputPath = sprintf("%s/%s_%02d.wav",$tmpFolder,$exerciseName,$i);
 					if($split_times[$i]->volume == 0)
-						$r = $this->mediaHelper->audioSubsample( $tmpFolder.'/'.$responseName.'.wav', $outputPath, $split_times[$i]->start, $split_times[$i]->end, 800);
+						$r = $this->mediaHelper->audioSubsample( $tmpFolder.'/'.$responseName.'.wav', $outputPath, $split_times[$i]->start, $split_times[$i]->end, -1); //Use 800 in last parameter to boost audio volume
 					else
 						$r = $this->mediaHelper->audioSubsample( $tmpFolder.'/'.$exerciseName.'.wav', $outputPath, $split_times[$i]->start, $split_times[$i]->end, -1);
 					//print_r($r."\n");
@@ -188,43 +187,6 @@ class VideoCollage{
 			return false;
 		}
 	}
-	
-	/*
-	public function addMissingPlaceHolderLinks(){
-		$sql = "SELECT r.file_identifier FROM response r INNER JOIN moodle_api ma ON r.fk_user_id = ma.fk_user_id WHERE r.id>0";
-		$results = $this->conn->_multipleSelect($sql);
-		if($results){
-			foreach($results as $result){
-				$responseName=$result->file_identifier;
-				$this->linkPlaceHolder($responseName);
-			}
-		}
-	}
-	
-	private function linkPlaceHolder($responseName){
-		$linkName = $this->red5Path . '/' . $this->responseFolder . '/' . $responseName . '_merge.flv';
-		$target = $this->red5Path . '/placeholder_merge.flv';
-		
-		if(!is_readable($target) || !is_writable($this->red5Path . '/'. $this->responseFolder) )
-			echo "You don't have permissions to read/write in the specified folders: ". $target.", ".$this->red5Path . '/'. $this->responseFolder."\n";
-		if( is_link($linkName) ){
-			echo "Can't create a link. A link with that name already exists: ".$linkName."\n";
-		} elseif(is_file($linkName)) {
-			echo "Can't create a link. A file with that name already exists: ".$linkName."\n";
-		} else {
-			if( !@symlink($target, $linkName)  )
-				echo "Couldn't create a link for that target: ".$linkName ." -> ".$target."\n";
-		}
-	}
-	
-	private function unlinkPlaceHolder($responseName){
-		$linkName = $this->red5Path.'/'.$this->responseFolder.'/'.$responseName.'_merge.flv';
-		if( is_link($linkName) ){
-			if(!@unlink($linkName))
-				echo "Error while removing the placeholder link: ".$linkName."\n";
-		}
-	}
-	*/
 	
 	private function sort_list_by_field($list, $field, $type=SORT_STRING, $order=SORT_ASC){
 		if (!$list || !$field || !is_array($list)) return;
