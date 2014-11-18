@@ -164,7 +164,7 @@ class VideoCollage{
 				
 				//Check if the response has a video stream or not
 				$responseInfo = $this->mediaHelper->retrieveMediaInfo($responsePath);
-				if($responseInfo->hasVideo){
+				if(isset($responseInfo->hasVideo) && $responseInfo->hasVideo){
 					//Pad the exercise video and add the response video as an overlay. Also replace the original audio with the audio collage
 					$r = $this->mediaHelper->mergeVideo($exercisePath, $responsePath, $this->red5Path.'/'.$this->responseFolder.'/'.$responseName.'_merge.flv', $tmpFolder.'/'.$exerciseName.'collage.wav');
 				} else {
