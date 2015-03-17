@@ -73,26 +73,31 @@ function getAPIKeys($user, $domain, $raw_domain){
 
 	//Check whether the user provided a username or an email
 	$field = Mailer::checkEmail($user) ? "email" : "username";
-	$sql = "SELECT ma.allowed_referer, u.id, u.username 
-            FROM moodle_api ma RIGHT OUTER JOIN user u ON ma.fk_user_id=u.id WHERE u.%s='%s' AND u.active=1";
+	$sql = "SELECT ma.domain, u.id, u.username 
+            FROM serviceconsumer ma RIGHT OUTER JOIN user u ON ma.fk_user_id=u.id WHERE u.%s='%s' AND u.active=1";
 	if(!$query_result = $db->_singleSelect($sql, $field, $user)){
 		return;
 	}
 
-	if($query_result->allowed_referer){
+	if($query_result->domain){
 		$output = "API Keys are only sent once. Check in your email account.";
 		return;
 	}
 	
-	$sql = "INSERT INTO moodle_api (`access_key`, `secret_access_key`, `allowed_referer`, `raw_referer`, `fk_user_id`, `date_created`)
-            VALUES ('%s', '%s', '%s', '%s', '%s', DEFAULT)"; 
+	$timestamp = time();
+	$date = new DateTime("@$timestamp");
+	$date->add(new DatePeriod('P1M')); //1 month
+	$expiry = $date->getTimestamp();
+	
+	$sql = "INSERT INTO serviceconsumer (`access_key`, `secret_access_key`, `domain`, `rawdomain`, `fk_user_id`, `timecreated`,`subscriptionstart`,`subscriptionend`,`enabled`)
+            VALUES ('%s', '%s', '%s', '%s', '%s', %d, %d, %d, %d)"; 
 	$userId = $query_result->id;
 	$accesskey = str_makerand(20,true,true,false);
 	$secretaccesskey = str_makerand(40,true,true,true);
 
 	$db->_startTransaction();
 
-	$insert_result = $db->_insert($sql,$accesskey,$secretaccesskey,$domain,$raw_domain,$userId);
+	$insert_result = $db->_insert($sql,$accesskey,$secretaccesskey,$domain,$raw_domain,$userId,$timestamp,$timestamp,$expiry,1);
 	if(!$insert_result){
 		$db->_failedTransaction();
 		return;

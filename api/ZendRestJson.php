@@ -40,6 +40,7 @@ class ZendRestJson extends Zend_Rest_Server
 	
 	private $allowed_time_skew = 900; //allowed time skew in seconds
 
+	private $r_serviceconsumer_id = 0;
 	private $r_access_key = '';
 	private $r_referer = '';
 	private $r_origin = '';
@@ -291,6 +292,9 @@ class ZendRestJson extends Zend_Rest_Server
 
 		//Log the fault in the server
 		$message = empty($message) ? implode(",", $json['response']) : $message;
+		
+		$this->_logRequest(time(),$method,$code,$message,$this->r_ip,$this->r_origin,$this->r_referer,$this->r_serviceconsumer_id);
+		
 		error_log("[".date("d/m/Y H:i:s")."] referer=".$this->r_referer." origin=".$this->r_origin." ip=".$this->r_ip." access_key=".$this->r_access_key." message=".$message."\n",3,"/tmp/moodle.log");	
 
 		return $json;
@@ -320,6 +324,8 @@ class ZendRestJson extends Zend_Rest_Server
 		}
 
 		$json['status'] = 'success';
+		
+		$this->_logRequest(time(),$method,200,'',$this->r_ip,$this->r_origin,$this->r_referer,$this->r_serviceconsumer_id);
 
 		return $json;
 	}
@@ -347,6 +353,8 @@ class ZendRestJson extends Zend_Rest_Server
 		}
 
 		$json['status'] = 'success';
+		
+		$this->_logRequest(time(),$method,200,'',$this->r_ip,$this->r_origin,$this->r_referer,$this->r_serviceconsumer_id);
 
 		return $json;
 	}
@@ -401,17 +409,42 @@ class ZendRestJson extends Zend_Rest_Server
 			
 		try{
 			//Query the DB for the provided accessKey
-			$sql = "SELECT access_key, secret_access_key, allowed_referer, fk_user_id FROM moodle_api WHERE access_key = '%s' LIMIT 1";
+			$sql = "SELECT id, access_key, secret_access_key, domain, ipaddress, fk_user_id, subscriptionstart, subscriptionend
+					FROM serviceconsumer WHERE access_key = '%s' AND enabled=1 LIMIT 1";
 			$result = $this->db->_singleSelect($sql,$cl_access_key);
 		} catch(Exception $e){
 			throw new Exception("Error retrieving user credentials",500);
 		}
 		if($result){
+			$this->r_serviceconsumer_id = $result->id;
 			$s_secret_access_key = $result->secret_access_key;
 			$s_access_key = $result->access_key;
-			$s_referer = $result->allowed_referer;
+			$s_referer = $result->domain;
+			$s_ipaddress = $result->ipaddress;
+			$s_subscriptionstart = $result->subscriptionstart;
+			$s_subscriptionend = $result->subscriptionend;
 		} else {
 			throw new Exception("Invalid credentials provided",403);
+		}
+		
+		if($s_subscriptionstart && $s_timestamp < $s_subscriptionstart){
+			throw new Exception("Subscription not yet started",403);
+		}
+		
+		if($s_subscriptionend && $s_timestamp >= $s_subscriptionend){
+			throw new Exception("Subscription expired",403);
+		}
+		
+		$cl_ipaddress = $_SERVER['REMOTE_ADDR'];
+		if(strpos($s_ipaddress,',')!==FALSE){
+			$s_ipaddresses = explode(',',$s_ipaddress);
+			if(!in_array($cl_ipaddress,$s_ipaddresses)){
+				throw new Exception("Unauthorized IP address",403);
+			}
+		} else {
+			if($cl_ipaddress != $s_ipaddress){
+				throw new Exception("Unauthorized IP address",403);
+			}
 		}
 	
 		//Check if the request is skewed in time to avoid replication
@@ -431,6 +464,17 @@ class ZendRestJson extends Zend_Rest_Server
 			}
 		}else{
 			throw new Exception("Request date is too skewed",403);
+		}
+	}
+	
+	private function _logRequest($time,$method,$statuscode,$message,$ipaddress,$origin,$referer,$consumer_id){
+		if($consumer_id){
+			$sql = "INSERT INTO serviceconsumer_log (time,method,statuscode,message,ipaddress,origin,referer,fk_serviceconsumer_id) 
+					VALUES (%d,'%s',%d,'%s','%s','%s','%s',%d)";
+			$this->db->_insert($sql,$time,$method,$statuscode,$message,$ipaddress,$origin,$referer,$consumer_id);
+		} else {
+			$sql = "INSERT INTO serviceconsumer_log (time,method,statuscode,message,ipaddress,origin,referer) VALUES (%d,'%s',%d,'%s','%s','%s','%s')";
+			$this->db->_insert($sql,$time,$method,$statuscode,$message,$ipaddress,$origin,$referer);
 		}
 	}
 
