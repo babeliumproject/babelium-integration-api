@@ -59,9 +59,7 @@ class ZendRestJson extends Zend_Rest_Server
 		if($this->r_referer && ($p = parse_url($this->r_referer))){
 			$r_host = $p['host'];
 			$ip = gethostbyname($r_host);
-			if($ip !== $r_host){
-				$this->r_ip = $ip;
-			}
+			$this->r_ip = $ip;
 		}
 	}
 	
@@ -436,14 +434,16 @@ class ZendRestJson extends Zend_Rest_Server
 		}
 		
 		$cl_ipaddress = $_SERVER['REMOTE_ADDR'];
-		if(strpos($s_ipaddress,',')!==FALSE){
-			$s_ipaddresses = explode(',',$s_ipaddress);
-			if(!in_array($cl_ipaddress,$s_ipaddresses)){
-				throw new Exception("Unauthorized IP address",403);
-			}
-		} else {
-			if($cl_ipaddress != $s_ipaddress){
-				throw new Exception("Unauthorized IP address",403);
+		if($s_ipaddress){
+			if(strpos($s_ipaddress,',')!==FALSE){
+				$s_ipaddresses = explode(',',$s_ipaddress);
+				if(!in_array($cl_ipaddress,$s_ipaddresses)){
+					throw new Exception("Unauthorized IP address",403);
+				}
+			} else {
+				if($cl_ipaddress != $s_ipaddress){
+					throw new Exception("Unauthorized IP address",403);
+				}
 			}
 		}
 	

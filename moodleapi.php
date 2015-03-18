@@ -89,15 +89,20 @@ function getAPIKeys($user, $domain, $raw_domain){
 	$date->add(new DatePeriod('P1M')); //1 month
 	$expiry = $date->getTimestamp();
 	
-	$sql = "INSERT INTO serviceconsumer (`access_key`, `secret_access_key`, `domain`, `rawdomain`, `fk_user_id`, `timecreated`,`subscriptionstart`,`subscriptionend`,`enabled`)
-            VALUES ('%s', '%s', '%s', '%s', '%s', %d, %d, %d, %d)"; 
+	$iplookup = gethostbyname($domain);
+	
+	//Filter private and reserved IP range
+	$iplookup = filter_var($iplookup, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+	
+	$sql = "INSERT INTO serviceconsumer (`access_key`, `secret_access_key`, `domain`, `rawdomain`, `fk_user_id`, `timecreated`,`subscriptionstart`,`subscriptionend`,`ipaddress`, `enabled`)
+            VALUES ('%s', '%s', '%s', '%s', '%s', %d, %d, %d, '%s', %d)"; 
 	$userId = $query_result->id;
 	$accesskey = str_makerand(20,true,true,false);
 	$secretaccesskey = str_makerand(40,true,true,true);
 
 	$db->_startTransaction();
 
-	$insert_result = $db->_insert($sql,$accesskey,$secretaccesskey,$domain,$raw_domain,$userId,$timestamp,$timestamp,$expiry,1);
+	$insert_result = $db->_insert($sql,$accesskey,$secretaccesskey,$domain,$raw_domain,$userId,$timestamp,$timestamp,$expiry,$iplookup,1);
 	if(!$insert_result){
 		$db->_failedTransaction();
 		return;
