@@ -86,7 +86,7 @@ function getAPIKeys($user, $domain, $raw_domain){
 	
 	$timestamp = time();
 	$date = new DateTime("@$timestamp");
-	$date->add(new DatePeriod('P1M')); //1 month
+	$date->add(new DateInterval('P1M')); //1 month
 	$expiry = $date->getTimestamp();
 	
 	$iplookup = gethostbyname($domain);
