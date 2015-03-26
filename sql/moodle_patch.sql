@@ -13,7 +13,7 @@ CREATE TABLE `serviceconsumer` (
   `timemodified` bigint(10) unsigned NOT NULL DEFAULT '0',
   `enabled` tinyint(1) unsigned NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `domain_UNIQUE` (`domain`),
+  UNIQUE KEY `domainforuser_UNIQUE` (`domain`,`fk_user_id`),
   UNIQUE KEY `access_key_UNIQUE` (`access_key`),
   KEY `fk_serviceconsumer_1` (`fk_user_id`),
   CONSTRAINT `fk_serviceconsumer_1` FOREIGN KEY (`fk_user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
