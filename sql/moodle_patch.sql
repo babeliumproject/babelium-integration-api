@@ -22,7 +22,7 @@ CREATE TABLE `serviceconsumer` (
 CREATE TABLE `serviceconsumer_log` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `time` bigint(10) unsigned NOT NULL DEFAULT '0',
-  `method` varchar(45) NOT NULL DEFAULT '',
+  `method` TEXT NOT NULL,
   `statuscode` int(11) NOT NULL DEFAULT '500',
   `message` varchar(45) NOT NULL DEFAULT '',
   `ipaddress` varchar(45) NOT NULL DEFAULT '',
