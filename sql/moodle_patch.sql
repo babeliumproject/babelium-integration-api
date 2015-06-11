@@ -24,7 +24,7 @@ CREATE TABLE `serviceconsumer_log` (
   `time` bigint(10) unsigned NOT NULL DEFAULT '0',
   `method` varchar(45) NOT NULL DEFAULT '',
   `statuscode` int(11) NOT NULL DEFAULT '500',
-  `message` varchar(45) NOT NULL DEFAULT '',
+  `message` TEXT NOT NULL,
   `ipaddress` varchar(45) NOT NULL DEFAULT '',
   `origin` varchar(255) NOT NULL DEFAULT '',
   `referer` varchar(255) NOT NULL DEFAULT '',
