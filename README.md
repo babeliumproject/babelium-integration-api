@@ -323,7 +323,9 @@ If you have other errors, or don't know how to proceed, please don't hesitate to
 
 * Check the time of your server against a public time server. The timestamp of the requests to the Babelium server is checked to minimize request replication and we drop the requests that are too skewed. Different timezones are supported but you should be within a +/- 15 minute boundary relative to the actual time.
 
-* If you your key-set and server time is correct perhaps you have a problem with the domain of your Moodle site. Please contact us so that we can analyze the problem.
+* If your key-set and server time are correct, perhaps you have a problem with the domain of your Moodle site. Please contact us so that we can analyze the problem.
+
+* If your server is behind a load balancer or reverse proxy that uses a different IP address from the one defined in the DNS records for your domain/subdomain you will need to contact us stating the actual request IP (when registering for an API key the IP address is retrieved from the DNS record of the specified domain).
 
 ###Babelium Error 400. Malformed request error
 * If you are using your own Babelium server, take a look at the log file of ZendRestJson.php (by default it is placed in /tmp/moodle.log) to see if you have a permission issue in your Babelium file system.
