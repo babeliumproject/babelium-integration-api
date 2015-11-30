@@ -372,11 +372,11 @@ class PluginSubset{
 			$level = 1; //Plugin does not support model recording
 			$media = $this->getExerciseMedia($exdata->id, $status, $level);
 			if($media){
-				//$exdata->media = $media;
-				$primarymedia = $media[0];
-				$exdata->name = substr($primarymedia->filename, 0, -4); //remove extension
-				$exdata->thumbnailUri = sprintf("%02d",$primarymedia->defaultthumbnail).'.jpg';
-				$exdata->duration = $primarymedia->duration;
+				$exdata->media = $media;
+				//$primarymedia = $media[0];
+				//$exdata->name = substr($primarymedia->filename, 0, -4); //remove extension
+				//$exdata->thumbnailUri = sprintf("%02d",$primarymedia->defaultthumbnail).'.jpg';
+				//$exdata->duration = $primarymedia->duration;
 			}
 			
 		}
