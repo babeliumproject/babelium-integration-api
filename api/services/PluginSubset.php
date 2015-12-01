@@ -383,6 +383,22 @@ class PluginSubset{
 
 		return $exdata;
 	}
+	
+	public function requestRecordingSlot(){
+		$prefix = "resp-";
+		$optime = round(microtime(true)*1000); //ms precision to mimic client-side behaviour.
+		$mediadir = 'responses';
+		$mediafilename = $prefix.$optime.'.flv';
+				
+		$mediaUrl = $mediadir.'/'.$mediafilename;
+				
+		$data = new stdClass();
+		$data->mediaUrl = $mediaUrl;
+		$data->netConnectionUrl = $this->cfg->streamingserver;
+		$data->maxDuration = 600;
+		
+		return $data;
+	}
 
 	private function exerciseDataById($exerciseid,$status=0){
 		if(!$exerciseid) return;
@@ -536,11 +552,11 @@ class PluginSubset{
 				$level = 1; //Plugin does not support model recording
 				$media = $this->getExerciseMedia($result->exerciseId, $status, $level);
 				if($media){
-					//$exdata->media = $media;
-					$primarymedia = $media[0];
-					$result->exerciseName = substr($primarymedia->filename, 0, -4); //remove extension
-					$exdata->exerciseThumbnailUri = sprintf("%02d",$primarymedia->defaultthumbnail).'.jpg';
-					$exdata->duration = $primarymedia->duration;
+					$result->media = $media;
+					//$primarymedia = $media[0];
+					//$result->exerciseName = substr($primarymedia->filename, 0, -4); //remove extension
+					//$exdata->exerciseThumbnailUri = sprintf("%02d",$primarymedia->defaultthumbnail).'.jpg';
+					//$exdata->duration = $primarymedia->duration;
 				}
 			}
 
