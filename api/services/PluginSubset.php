@@ -133,10 +133,17 @@ class PluginSubset{
         return $parsed_subtitles;
     }
 
-	/**
-	 * EXERCISE.PHP
-	 */
-	public function getRecordableExercises(){
+	// EXERCISE.PHP //
+	
+    /**
+     * Returns the exercises that can be consumed by this API key and meet the given
+     * search criteria.
+     * @param stdClass $data
+     * 		The filters and/or search criteria used to narrow the results.
+     * @return void|false|stdClass
+     * 		The exercises that meet the selected criteria, void or false if the user ID is not set or no matching exercises are found.
+     */
+	public function getRecordableExercises($data=null){
 		$where = "";
 		$userId = self::$userId;
 		if ($userId)
@@ -201,6 +208,15 @@ class PluginSubset{
 
 	}
 
+	/**
+	 * Filters the exercises by language
+	 * @param array $list
+	 * 		The exercise list to be filtered
+	 * @param string $lang
+	 * 		The language code by wich the list is filtered
+	 * @return void|array
+	 * 		The filtered list or void if the language or the list are not set.
+	 */
 	private function filterByLang($list, $lang){
 		if(!$lang || !$list) return;
 		$result = array();
@@ -212,8 +228,17 @@ class PluginSubset{
 		return $result;
 	}
 	
+	/**
+	 * Filters an exercise list by difficulty
+	 * @param array $list
+	 * 		The exercise list to be filtered.
+	 * @param int $difficulty
+	 * 		A difficulty level in the range [0-4] that correlates to [A1,A2,B1,B2,C1]
+	 * @return void|array
+	 * 		The filtered exercise list or void when the list or the difficulty are not set
+	 */
 	private function filterByDifficulty($list, $difficulty){
-		if(!$difficulty || !$list) return;
+		if($difficulty==-1 || !$list) return;
 		$result = array();
 		foreach($list as $l){
 			if($l->difficulty==$difficulty){
@@ -223,6 +248,15 @@ class PluginSubset{
 		return $result;
 	}
 	
+	/**
+	 * Filters an exercise list by exercise-type
+	 * @param array $list
+	 * 		The exercise list to be filtered.
+	 * @param int $type
+	 * 		An exercise type in the range [0-5]
+	 * @return void|array
+	 * 		The filtered exercise list or void when the list or the type are not set.
+	 */
 	private function filterByType($list, $type){
 		if($type==-1 || !$list) return;
 		$result = array();
@@ -234,6 +268,15 @@ class PluginSubset{
 		return $result;
 	}
 	
+	/**
+	 * Filters an exercise list by situation.
+	 * @param array $list
+	 * 		The exercise list to be filtered.
+	 * @param int $situation
+	 * 		A communication situation in the range [1-3]
+	 * @return void|array
+	 * 		The filtered exercise list or void when the list or the situation are not set.
+	 */
 	private function filterBySituation($list, $situation){
 		if(!$situation || !$list) return;
 		$result = array();
@@ -246,7 +289,7 @@ class PluginSubset{
 	}
 
 	/**
-	 * Returns the descriptors of the provided exercise (if any) formated like this example: D000_A1_SI00
+	 * Returns the descriptors of the provided exercise.
 	 * @param int $exerciseId
 	 * 		The exercise id to check for descriptors
 	 * @return mixed $dcodes
@@ -293,6 +336,13 @@ class PluginSubset{
 		return $tags;
 	}
 	
+	/**
+	 * Returns the minimum required data to play the media associated with an exercise.
+	 * @param int $exerciseid
+	 * 		An exercise ID
+	 * @return void|stdClass
+	 * 		Returns the data of the media associated to the exercise or void when the exercise ID is not set or is not found.
+	 */
 	private function getPrimaryMediaMinData($exerciseid){
 		if(!$exerciseid) return;
 		$data = false;
@@ -382,6 +432,13 @@ class PluginSubset{
 		return $results;
 	}
 
+	/**
+	 * Returns the exercises' data and the data of its media
+	 * @param int $id
+	 * 		The requested exercise Id
+	 * @return void|stdClass
+	 * 		Returns the exercise data and the media data or void if the exercise ID is not set.
+	 */
 	public function getExerciseById($id = 0){
 		if(!$id)
 			return;
@@ -404,6 +461,11 @@ class PluginSubset{
 		return $exdata;
 	}
 	
+	/**
+	 * Makes a 'fake' request to the media server to assign a media recording slot
+	 * @return stdClass
+	 * 		The data of the recording slot for the media server
+	 */
 	public function requestRecordingSlot(){
 		$prefix = "resp-";
 		$optime = round(microtime(true)*1000); //ms precision to mimic client-side behaviour.
@@ -420,6 +482,15 @@ class PluginSubset{
 		return $data;
 	}
 
+	/**
+	 * Returns the data of the requested exercise
+	 * @param int $exerciseid
+	 * 		The ID of the exercise
+	 * @param int $status
+	 * 		The status of the exercise in the range [0,1]: Visible, Private
+	 * @return void|stdClass
+	 * 		The exercise data or void when exercise ID is not set or is not found
+	 */
 	private function exerciseDataById($exerciseid,$status=0){
 		if(!$exerciseid) return;
 
@@ -465,8 +536,18 @@ class PluginSubset{
 		return $results; // return languages
 	}
 
+	// RESPONSE.PHP //
+	
 	/**
-	 * RESPONSE.PHP
+	 * Saves the user's submission (response) and returns the response ID and thumbnail URLs of the recording
+	 * @param stdClass $data
+	 * 		The submission data that needs to be checked and saved
+	 * @throws Exception
+	 * 		When the given data is not valid, the user ID is not set, the script has not permissions to write in the thumbnail
+	 *      or poster folders, the exercise is no longer available and therefore has not associated media, the recording file
+	 *      is not found on the filesystem or symbolic links for the images cannot be created.
+	 * @returns bool|stdClass
+	 * 		The response ID and the thumbnail URL of the submission
 	 */
 	public function admSaveResponse($data){
 		$userId = self::$userId;
@@ -543,6 +624,9 @@ class PluginSubset{
 		}
 	}
 
+	/**
+	 * Sets the folders of the different media resources of the media server
+	 */
 	private function _getResourceDirectories(){
 		$sql = "SELECT prefValue
 			FROM preferences
