@@ -42,42 +42,28 @@ class PluginSubset{
 	/**
 	 * Retrieves the subtitle lines associated to a subtitle ID or an exercise ID.
 	 * @param stdClass $subtitle
-	 * 		The ID of a subtitle version or an exercise.
+	 * 		The ID of a subtitle version or a media ID.
 	 * @return bool|stdClass
 	 * 		The parsed subtitle lines or false if the subtitles were not found or were not parsed.
 	 */
 	public function getSubtitleLines($subtitle=null) {
-		if(!$subtitle)
-			return false;
+        if(!$subtitle)
+            return false;
+        $subtitleId = isset($subtitle->id) ? $subtitle->id : 0;
+        $mediaId = isset($subtitle->mediaid) ? $subtitle->mediaid : 0;
+		
+        if(!$subtitleId){
+            //Get the latest subtitle version for this exercise
+            $sql = "SELECT * FROM subtitle WHERE id = (SELECT MAX(id) FROM subtitle WHERE fk_media_id=%d)";
 
-		$subtitleId = isset($subtitle->id) ? $subtitle->id : 0;
-		$exerciseId = isset($subtitle->exerciseId) ? $subtitle->exerciseId : 0;
-		//$language = isset($subtitle->language) ? $subtitle->language : NULL;
-
-		if(!$subtitleId){
-			$mediaId=0;
-			$subtitle = NULL;
-
-			$medialist = $this->getExerciseMedia($exerciseId,2,1);
-			
-			if($medialist){
-				$mediaId=$medialist[0]->id;
-			}
-			if($mediaId){
-            	//Get the latest subtitle version for this exercise
-            	$sql = "SELECT * FROM subtitle WHERE id = (SELECT MAX(id) FROM subtitle WHERE fk_media_id=%d)";
-
-            	$subtitle = $this->conn->_singleSelect($sql, $mediaId);
-        	}
+            $subtitle = $this->conn->_singleSelect($sql, $mediaId);
         } else {
             $sql = "SELECT * FROM subtitle WHERE id=%d";
             $subtitle = $this->conn->_singleSelect($sql, $subtitleId);
         }   
-
+        
         $parsed_subtitles = $this->parseSubtitles($subtitle);
-
-        return $parsed_subtitles;
-
+		return $parsed_subtitles;
 	}
 
 	/**
@@ -364,7 +350,7 @@ class PluginSubset{
 	}
 
 	/**
-	 * Retrieves the media associated to the specified exercise.
+	 * Retrieves the media associated with the specified exercise.
 	 * 
 	 * @param int $exerciseid
 	 * 		The exercise id whose media you want to retrieve
@@ -449,16 +435,18 @@ class PluginSubset{
 			$level = 1; //Plugin does not support model recording
 			$media = $this->getExerciseMedia($exdata->id, $status, $level);
 			if($media){
-				$exdata->media = $media;
-				//$primarymedia = $media[0];
-				//$exdata->name = substr($primarymedia->filename, 0, -4); //remove extension
-				//$exdata->thumbnailUri = sprintf("%02d",$primarymedia->defaultthumbnail).'.jpg';
-				//$exdata->duration = $primarymedia->duration;
+				if(is_array($media) && count($media)){
+					$exdata->media = $media[0];
+				} else {
+					$exdata->media = $media;
+				}
+				return $exdata;
+			} else {
+				return;
 			}
-			
+		} else {
+			return;
 		}
-
-		return $exdata;
 	}
 	
 	/**
@@ -650,27 +638,33 @@ class PluginSubset{
 	 * @return stdClass|null
 	 * 		The response and the media or null if the media was missing.
 	 */
-	public function getResponseData($responseId){
+	public function getResponseById($responseId){
+		$userId = self::$userId;
+		
 		if(!$responseId)
 			throw new Exception("Invalid parameters", 1000);
-	
-		$response = $this->getResponseById($responseId);
+		if(!$userId)
+			throw new Exception("Invalid user id",1001);
+		
+		$response = $this->getResponseData($responseId,$userId);
 		if(!$response)
 			throw new Exception("Response id does not exist",1006);
-	
-		$status = 2; //Available media
-		$exmedia = $this->getMediaById($response->fk_media_id,$status);
-		if($exmedia){
-			$response->leftMedia = $exmedia;
-				
+		
+		$data = $this->getExerciseById($response->fk_exercise_id);
+		if($data){
+			$leftMedia = $data->media;
 			$rightMedia = new stdClass();
 			$rightMedia->netConnectionUrl = $this->cfg->streamingserver;
 			$rightMedia->mediaUrl = 'responses/'.$response->file_identifier.'.flv';
-				
-			$response->rightMedia = $rightMedia;
+			
+			unset($data->media);
+			$data->leftMedia=$leftMedia;
+			$data->rightMedia = $rightMedia;
+			$data->subtitleId = $response->fk_subtitle_id;
+			$data->selectedRole = $response->character_name;
+			$data->mediaId = $response->fk_media_id;
 		}
-	
-		return isset($response->leftMedia) ? $response : null;
+		return $data;
 	}
 	
 	/**
@@ -680,14 +674,14 @@ class PluginSubset{
 	 * @return void|null|stdClass
 	 * 		The response data or null|void if the response ID does not exist or is not set.
 	 */
-	private function getResponseById($responseid){
+	private function getResponseData($responseid,$userid){
 		if(!$responseid) return;
 	
 		$sql = "SELECT r.*, u.username
 		FROM response r INNER JOIN user u ON r.fk_user_id=u.id
-		WHERE r.id=%d";
+		WHERE r.id=%d AND r.fk_user_id=%d";
 	
-		$result = $this->conn->_singleSelect($sql, $responseid);
+		$result = $this->conn->_singleSelect($sql, $responseid, $userid);
 		return $result;
 	}
 	
@@ -730,39 +724,6 @@ class PluginSubset{
 			$result->mediaUrl = 'exercises/'.$result->filename;
 		}
 		return $result;
-	}
-	
-
-	public function admGetResponseById($responseId){
-		try{
-
-			$sql = "SELECT r.file_identifier as responseName, 
-				       r.character_name as responseRole, 
-				       r.fk_subtitle_id as subtitleId, 
-				       r.thumbnail_uri as responseThumbnailUri,
-				       e.id as exerciseId,
-				       e.title 
-				FROM response r INNER JOIN exercise e ON r.fk_exercise_id = e.id
-				WHERE (e.status=1 AND e.visible=1 AND r.id = '%d')";	
-
-			$result = $this->conn->_singleSelect($sql, $responseId);
-			if($result){
-				$status = 2;
-				$level = 1; //Plugin does not support model recording
-				$media = $this->getExerciseMedia($result->exerciseId, $status, $level);
-				if($media){
-					$result->media = $media;
-					//$primarymedia = $media[0];
-					//$result->exerciseName = substr($primarymedia->filename, 0, -4); //remove extension
-					//$exdata->exerciseThumbnailUri = sprintf("%02d",$primarymedia->defaultthumbnail).'.jpg';
-					//$exdata->duration = $primarymedia->duration;
-				}
-			}
-
-			return $result;
-		} catch(Exception $e){
-			throw new Exception($e->getMessage());
-		}
 	}
 }
 ?>
