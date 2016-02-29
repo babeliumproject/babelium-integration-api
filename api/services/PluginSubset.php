@@ -37,43 +37,42 @@ class PluginSubset{
 		}
 	}
 
+	// SUBTITLE.PHP //
+	
 	/**
-	 * SUBTITLE.PHP
+	 * Retrieves the subtitle lines associated to a subtitle ID or an exercise ID.
+	 * @param stdClass $subtitle
+	 * 		The ID of a subtitle version or a media ID.
+	 * @return bool|stdClass
+	 * 		The parsed subtitle lines or false if the subtitles were not found or were not parsed.
 	 */
 	public function getSubtitleLines($subtitle=null) {
-		if(!$subtitle)
-			return false;
+        if(!$subtitle)
+            return false;
+        $subtitleId = isset($subtitle->id) ? $subtitle->id : 0;
+        $mediaId = isset($subtitle->mediaid) ? $subtitle->mediaid : 0;
+		
+        if(!$subtitleId){
+            //Get the latest subtitle version for this exercise
+            $sql = "SELECT * FROM subtitle WHERE id = (SELECT MAX(id) FROM subtitle WHERE fk_media_id=%d)";
 
-		$subtitleId = isset($subtitle->id) ? $subtitle->id : 0;
-		$exerciseId = isset($subtitle->exerciseId) ? $subtitle->exerciseId : 0;
-		//$language = isset($subtitle->language) ? $subtitle->language : NULL;
-
-		if(!$subtitleId){
-			$mediaId=0;
-			$subtitle = NULL;
-
-			$medialist = $this->getExerciseMedia($exerciseId,2,1);
-			
-			if($medialist){
-				$mediaId=$medialist[0]->id;
-			}
-			if($mediaId){
-            	//Get the latest subtitle version for this exercise
-            	$sql = "SELECT * FROM subtitle WHERE id = (SELECT MAX(id) FROM subtitle WHERE fk_media_id=%d)";
-
-            	$subtitle = $this->conn->_singleSelect($sql, $mediaId);
-        	}
+            $subtitle = $this->conn->_singleSelect($sql, $mediaId);
         } else {
             $sql = "SELECT * FROM subtitle WHERE id=%d";
             $subtitle = $this->conn->_singleSelect($sql, $subtitleId);
         }   
-
+        
         $parsed_subtitles = $this->parseSubtitles($subtitle);
-
-        return $parsed_subtitles;
-
+		return $parsed_subtitles;
 	}
 
+	/**
+	 * Unserializes and uncompresses the given data.
+	 * @param string $data
+	 * 		Base64 encoded and compressed data.
+	 * @return string
+	 * 		The decoded string or the original parameter if any decoding step was unsuccessful.
+	 */
 	private function unpackblob($data){
         if(($decoded = base64_decode($data)) !== FALSE){
             if(($plaindata = gzuncompress($decoded)) !== FALSE){
@@ -83,6 +82,13 @@ class PluginSubset{
         return $data;
     }
     
+    /**
+     * Unpacks and converts serialized subtitle lines to a previous format.
+     * @param stdClass $subtitle
+     * 		The subtitle lines that need parsing.
+     * @return bool|stdClass
+     * 		The parsed subtitle lines or false if the lines could not be parsed.
+     */
     private function parseSubtitles($subtitle){
         $parsed_subtitles = FALSE;
         if($subtitle){
@@ -113,10 +119,17 @@ class PluginSubset{
         return $parsed_subtitles;
     }
 
-	/**
-	 * EXERCISE.PHP
-	 */
-	public function getRecordableExercises(){
+	// EXERCISE.PHP //
+	
+    /**
+     * Returns the exercises that can be consumed by this API key and meet the given
+     * search criteria.
+     * @param stdClass $data
+     * 		The filters and/or search criteria used to narrow the results.
+     * @return void|false|stdClass
+     * 		The exercises that meet the selected criteria, void or false if the user ID is not set or no matching exercises are found.
+     */
+	public function getRecordableExercises($data=null){
 		$where = "";
 		$userId = self::$userId;
 		if ($userId)
@@ -181,6 +194,15 @@ class PluginSubset{
 
 	}
 
+	/**
+	 * Filters the exercises by language
+	 * @param array $list
+	 * 		The exercise list to be filtered
+	 * @param string $lang
+	 * 		The language code by wich the list is filtered
+	 * @return void|array
+	 * 		The filtered list or void if the language or the list are not set.
+	 */
 	private function filterByLang($list, $lang){
 		if(!$lang || !$list) return;
 		$result = array();
@@ -192,8 +214,17 @@ class PluginSubset{
 		return $result;
 	}
 	
+	/**
+	 * Filters an exercise list by difficulty
+	 * @param array $list
+	 * 		The exercise list to be filtered.
+	 * @param int $difficulty
+	 * 		A difficulty level in the range [0-4] that correlates to [A1,A2,B1,B2,C1]
+	 * @return void|array
+	 * 		The filtered exercise list or void when the list or the difficulty are not set
+	 */
 	private function filterByDifficulty($list, $difficulty){
-		if(!$difficulty || !$list) return;
+		if($difficulty==-1 || !$list) return;
 		$result = array();
 		foreach($list as $l){
 			if($l->difficulty==$difficulty){
@@ -203,6 +234,15 @@ class PluginSubset{
 		return $result;
 	}
 	
+	/**
+	 * Filters an exercise list by exercise-type
+	 * @param array $list
+	 * 		The exercise list to be filtered.
+	 * @param int $type
+	 * 		An exercise type in the range [0-5]
+	 * @return void|array
+	 * 		The filtered exercise list or void when the list or the type are not set.
+	 */
 	private function filterByType($list, $type){
 		if($type==-1 || !$list) return;
 		$result = array();
@@ -214,6 +254,15 @@ class PluginSubset{
 		return $result;
 	}
 	
+	/**
+	 * Filters an exercise list by situation.
+	 * @param array $list
+	 * 		The exercise list to be filtered.
+	 * @param int $situation
+	 * 		A communication situation in the range [1-3]
+	 * @return void|array
+	 * 		The filtered exercise list or void when the list or the situation are not set.
+	 */
 	private function filterBySituation($list, $situation){
 		if(!$situation || !$list) return;
 		$result = array();
@@ -226,7 +275,7 @@ class PluginSubset{
 	}
 
 	/**
-	 * Returns the descriptors of the provided exercise (if any) formated like this example: D000_A1_SI00
+	 * Returns the descriptors of the provided exercise.
 	 * @param int $exerciseId
 	 * 		The exercise id to check for descriptors
 	 * @return mixed $dcodes
@@ -273,6 +322,13 @@ class PluginSubset{
 		return $tags;
 	}
 	
+	/**
+	 * Returns the minimum required data to play the media associated with an exercise.
+	 * @param int $exerciseid
+	 * 		An exercise ID
+	 * @return void|stdClass
+	 * 		Returns the data of the media associated to the exercise or void when the exercise ID is not set or is not found.
+	 */
 	private function getPrimaryMediaMinData($exerciseid){
 		if(!$exerciseid) return;
 		$data = false;
@@ -294,7 +350,7 @@ class PluginSubset{
 	}
 
 	/**
-	 * Retrieves the media associated to the specified exercise.
+	 * Retrieves the media associated with the specified exercise.
 	 * 
 	 * @param int $exerciseid
 	 * 		The exercise id whose media you want to retrieve
@@ -362,6 +418,13 @@ class PluginSubset{
 		return $results;
 	}
 
+	/**
+	 * Returns the exercises' data and the data of its media
+	 * @param int $id
+	 * 		The requested exercise Id
+	 * @return void|stdClass
+	 * 		Returns the exercise data and the media data or void if the exercise ID is not set.
+	 */
 	public function getExerciseById($id = 0){
 		if(!$id)
 			return;
@@ -372,18 +435,50 @@ class PluginSubset{
 			$level = 1; //Plugin does not support model recording
 			$media = $this->getExerciseMedia($exdata->id, $status, $level);
 			if($media){
-				//$exdata->media = $media;
-				$primarymedia = $media[0];
-				$exdata->name = substr($primarymedia->filename, 0, -4); //remove extension
-				$exdata->thumbnailUri = sprintf("%02d",$primarymedia->defaultthumbnail).'.jpg';
-				$exdata->duration = $primarymedia->duration;
+				if(is_array($media) && count($media)){
+					$exdata->media = $media[0];
+				} else {
+					$exdata->media = $media;
+				}
+				return $exdata;
+			} else {
+				return;
 			}
-			
+		} else {
+			return;
 		}
-
-		return $exdata;
+	}
+	
+	/**
+	 * Makes a 'fake' request to the media server to assign a media recording slot
+	 * @return stdClass
+	 * 		The data of the recording slot for the media server
+	 */
+	public function requestRecordingSlot(){
+		$prefix = "resp-";
+		$optime = round(microtime(true)*1000); //ms precision to mimic client-side behaviour.
+		$mediadir = 'responses';
+		$mediafilename = $prefix.$optime.'.flv';
+				
+		$mediaUrl = $mediadir.'/'.$mediafilename;
+				
+		$data = new stdClass();
+		$data->mediaUrl = $mediaUrl;
+		$data->netConnectionUrl = $this->cfg->streamingserver;
+		$data->maxDuration = 600;
+		
+		return $data;
 	}
 
+	/**
+	 * Returns the data of the requested exercise
+	 * @param int $exerciseid
+	 * 		The ID of the exercise
+	 * @param int $status
+	 * 		The status of the exercise in the range [0,1]: Visible, Private
+	 * @return void|stdClass
+	 * 		The exercise data or void when exercise ID is not set or is not found
+	 */
 	private function exerciseDataById($exerciseid,$status=0){
 		if(!$exerciseid) return;
 
@@ -429,82 +524,97 @@ class PluginSubset{
 		return $results; // return languages
 	}
 
+	// RESPONSE.PHP //
+	
 	/**
-	 * RESPONSE.PHP
+	 * Saves the user's submission (response) and returns the response ID and thumbnail URLs of the recording
+	 * @param stdClass $data
+	 * 		The submission data that needs to be checked and saved
+	 * @throws Exception
+	 * 		When the given data is not valid, the user ID is not set, the script has not permissions to write in the thumbnail
+	 *      or poster folders, the exercise is no longer available and therefore has not associated media, the recording file
+	 *      is not found on the filesystem or symbolic links for the images cannot be created.
+	 * @returns bool|stdClass
+	 * 		The response ID and the thumbnail URL of the submission
 	 */
 	public function admSaveResponse($data){
+		$userId = self::$userId;
+		
+		if(!$data || !isset($data->mediaUrl))
+			throw new Exception("Invalid parameters",1000);
+		if(!$userId)
+			throw new Exception("Invalid UserID",1001);
+		
+		$recordingUrl = $data->mediaUrl;
+		$responsecode = substr($recordingUrl,strrpos($recordingUrl,'/')+1,-4);
+		
+		set_time_limit(0);
+		//$this->_getResourceDirectories();
+		$thumbnail = 'default.jpg';
+		$source= 'Red5';
+		
 		try{
-			$userId = self::$userId;
-			if(!$userId)
-				return;
-			set_time_limit(0);
-			$this->_getResourceDirectories();
-			$thumbnail = 'default.jpg';
-
-			try{
-
-				$mediaId=0;
-				$medialist = $this->getExerciseMedia($data->exerciseId,2,1);
-				if($medialist){
-					$mediaId=$medialist[0]->id;
-				}
-				if(!$mediaId){
-					throw new Exception("Can't find any media associated with this exercise");
-				}
-
-				$videoPath = $this->cfg->red5Path .'/'. $this->responseFolder .'/'. $data->fileIdentifier . '.flv';
-				$mediaData = $this->mediaHelper->retrieveMediaInfo($videoPath);
-				$duration = $mediaData->duration;
-
-				if($mediaData->hasVideo){
-					$thumbdir = $this->cfg->imagePath.'/'.$data->fileIdentifier;
-					$posterdir = $this->cfg->posterPath.'/'.$data->fileIdentifier;
-					$this->mediaHelper->takeFolderedRandomSnapshots($videoPath, $thumbdir, $posterdir);
-					//The videoprocessor no longer generates softlinks to 'default.jpg'
-					@symlink($thumbdir.'/01.jpg',$thumbdir.'/default.jpg');
-					@symlink($posterdir.'/01.jpg',$posterdir.'/default.jpg');
-				} else {
-					//Make a folder with the same hash as the audio-only response and link to the parent folder's nothumb.png
-					$thumbdir = $this->cfg->imagePath . '/' . $data->fileIdentifier;
-					if(!is_dir($thumbdir)){
-						if(!mkdir($thumbdir))
-							throw new Exception("You don't have enough permissions to create the thumbail folder: ".$thumbdir."\n");
-						if(!is_writable($thumbdir))
-							throw new Exception("You don't have enough permissions to write to the thumbnail folder: ".$thumbdir."\n");
-						if( !symlink($this->cfg->imagePath.'/nothumb.png', $thumbdir.'/default.jpg')  )
-							throw new Exception ("Couldn't create link for the thumbnail\n");
-					} else {
-						throw new Exception("A directory with this name already exists: ".$thumbdir."\n");
-					}
-				}
-			} catch (Exception $e){
-				throw new Exception($e->getMessage());
+			$mediaId=0;
+			$medialist = $this->getExerciseMedia($data->exerciseId,2,1);
+			if($medialist){
+				$mediaId=$medialist[0]->id;
+			}
+			if(!$mediaId){
+				throw new Exception("Can't find any media associated with this exercise");
 			}
 
+			$videoPath = $this->cfg->red5Path .'/'. $recordingUrl;
+			$mediaData = $this->mediaHelper->retrieveMediaInfo($videoPath);
+			$duration = $mediaData->duration;
 
-			$insert = "INSERT INTO response (fk_user_id, fk_exercise_id, fk_media_id, file_identifier, is_private, thumbnail_uri, source, duration, adding_date, rating_amount, character_name, fk_subtitle_id) ";
-			$insert = $insert . "VALUES ('%d', '%d', '%d', '%s', 1, '%s', '%s', '%s', now(), 1, '%s', %d ) ";
-
-			$result = $this->conn->_insert($insert, $userId , $data->exerciseId, $mediaId, $data->fileIdentifier, $thumbnail, 'Red5', $duration, $data->characterName, $data->subtitleId );
-			if($result){
-				$r = new stdClass();
-				$r->responseId = $result;
-				if($thumbnail == 'default.jpg'){
-					$r->responseThumbnail = 'http://' . $_SERVER['HTTP_HOST'] . '/resources/images/thumbs/' . $data->fileIdentifier . '/default.jpg';
-				} else {
-					$r->responseThumbnail = 'http://' . $_SERVER['HTTP_HOST'] . '/resources/images/thumbs/nothumb.png';
-				}
-				$r->responseFileIdentifier = $data->fileIdentifier;
-				return $r;
+			if($mediaData->hasVideo){
+				$thumbdir = $this->cfg->imagePath.'/'.$responsecode;
+				$posterdir = $this->cfg->posterPath.'/'.$responsecode;
+				$this->mediaHelper->takeFolderedRandomSnapshots($videoPath, $thumbdir, $posterdir);
+				//The videoprocessor no longer generates softlinks to 'default.jpg'
+				@symlink($thumbdir.'/01.jpg',$thumbdir.'/default.jpg');
+				@symlink($posterdir.'/01.jpg',$posterdir.'/default.jpg');
 			} else {
-				return false;
+				//Make a folder with the same hash as the audio-only response and link to the parent folder's nothumb.png
+				$thumbdir = $this->cfg->imagePath . '/' . $responsecode;
+				if(!is_dir($thumbdir)){
+					if(!mkdir($thumbdir))
+						throw new Exception("You don't have enough permissions to create the thumbail folder: ".$thumbdir."\n");
+					if(!is_writable($thumbdir))
+						throw new Exception("You don't have enough permissions to write to the thumbnail folder: ".$thumbdir."\n");
+					if( !symlink($this->cfg->imagePath.'/nothumb.png', $thumbdir.'/default.jpg')  )
+						throw new Exception ("Couldn't create link for the thumbnail\n");
+				} else {
+					throw new Exception("A directory with this name already exists: ".$thumbdir."\n");
+				}
 			}
-		}catch(Exception $e){
+		} catch (Exception $e){
 			throw new Exception($e->getMessage());
 		}
 
+
+		$insert = "INSERT INTO response (fk_user_id, fk_exercise_id, fk_media_id, file_identifier, is_private, thumbnail_uri, source, duration, adding_date, rating_amount, character_name, fk_subtitle_id) ";
+		$insert = $insert . "VALUES ('%d', '%d', '%d', '%s', 1, '%s', '%s', '%s', now(), 1, '%s', %d ) ";
+
+		$result = $this->conn->_insert($insert, $userId , $data->exerciseId, $mediaId, $responsecode, $thumbnail, $source, $duration, $data->characterName, $data->subtitleId );
+		if($result){
+			$r = new stdClass();
+			$r->responseId = $result;
+			if($media->hasVideo){
+				$r->responseThumbnail = '//' . $_SERVER['HTTP_HOST'] . '/resources/images/thumbs/' . $responsecode . '/default.jpg';
+			} else {
+				$r->responseThumbnail = '//' . $_SERVER['HTTP_HOST'] . '/resources/images/thumbs/nothumb.png';
+			}
+			$r->responseFileIdentifier = $responsecode;
+			return $r;
+		} else {
+			return false;
+		}
 	}
 
+	/**
+	 * Sets the folders of the different media resources of the media server
+	 */
 	private function _getResourceDirectories(){
 		$sql = "SELECT prefValue
 			FROM preferences
@@ -517,37 +627,103 @@ class PluginSubset{
 			$this->responseFolder = $result[2] ? $result[2]->prefValue : '';
 		}
 	}
-
-	public function admGetResponseById($responseId){
-		try{
-
-			$sql = "SELECT r.file_identifier as responseName, 
-				       r.character_name as responseRole, 
-				       r.fk_subtitle_id as subtitleId, 
-				       r.thumbnail_uri as responseThumbnailUri,
-				       e.id as exerciseId,
-				       e.title 
-				FROM response r INNER JOIN exercise e ON r.fk_exercise_id = e.id
-				WHERE (e.status=1 AND e.visible=1 AND r.id = '%d')";	
-
-			$result = $this->conn->_singleSelect($sql, $responseId);
-			if($result){
-				$status = 2;
-				$level = 1; //Plugin does not support model recording
-				$media = $this->getExerciseMedia($result->exerciseId, $status, $level);
-				if($media){
-					//$exdata->media = $media;
-					$primarymedia = $media[0];
-					$result->exerciseName = substr($primarymedia->filename, 0, -4); //remove extension
-					$exdata->exerciseThumbnailUri = sprintf("%02d",$primarymedia->defaultthumbnail).'.jpg';
-					$exdata->duration = $primarymedia->duration;
-				}
-			}
-
-			return $result;
-		} catch(Exception $e){
-			throw new Exception($e->getMessage());
+	
+	// EVALUATION.PHP //
+	/**
+	 * Returns all the data of a response and the media associated with it.
+	 * @param int $responseId
+	 * 		The ID of the response to retrieve.
+	 * @throws Exception
+	 * 		When the response ID does not exist or is not specified.
+	 * @return stdClass|null
+	 * 		The response and the media or null if the media was missing.
+	 */
+	public function getResponseById($responseId){
+		$userId = self::$userId;
+		
+		if(!$responseId)
+			throw new Exception("Invalid parameters", 1000);
+		if(!$userId)
+			throw new Exception("Invalid user id",1001);
+		
+		$response = $this->getResponseData($responseId,$userId);
+		if(!$response)
+			throw new Exception("Response id does not exist",1006);
+		
+		$data = $this->getExerciseById($response->fk_exercise_id);
+		if($data){
+			$leftMedia = $data->media;
+			$rightMedia = new stdClass();
+			$rightMedia->netConnectionUrl = $this->cfg->streamingserver;
+			$rightMedia->mediaUrl = 'responses/'.$response->file_identifier.'.flv';
+			
+			unset($data->media);
+			$data->leftMedia=$leftMedia;
+			$data->rightMedia = $rightMedia;
+			$data->subtitleId = $response->fk_subtitle_id;
+			$data->selectedRole = $response->character_name;
+			$data->mediaId = $response->fk_media_id;
 		}
+		return $data;
+	}
+	
+	/**
+	 * Returns all the data of a response and the name of the user who recorded it.
+	 * @param int $responseid
+	 * 		The ID of the response to retrieve
+	 * @return void|null|stdClass
+	 * 		The response data or null|void if the response ID does not exist or is not set.
+	 */
+	private function getResponseData($responseid,$userid){
+		if(!$responseid) return;
+	
+		$sql = "SELECT r.*, u.username
+		FROM response r INNER JOIN user u ON r.fk_user_id=u.id
+		WHERE r.id=%d AND r.fk_user_id=%d";
+	
+		$result = $this->conn->_singleSelect($sql, $responseid, $userid);
+		return $result;
+	}
+	
+	/**
+	 * Returns the data of the renditions associated with a media ID.
+	 * @param int $mediaid
+	 * 		The ID of the media data to retrieve
+	 * @param int|Array $status
+	 * 		The status of the media rendition we want to retrieve
+	 * @throws Exception
+	 * 		When the media ID is not set.
+	 * @return null|stdClass
+	 * 		The media data or null if the media ID was not found
+	 */
+	private function getMediaById($mediaid,$status){
+		if(!$mediaid)
+			throw new Exception("Invalid parameters",1000);
+	
+		$sql = "SELECT m.id, m.mediacode, m.instanceid, m.component, m.type, m.duration, m.level, m.defaultthumbnail, mr.status, mr.filename
+		FROM media m INNER JOIN media_rendition mr ON m.id=mr.fk_media_id
+		WHERE m.id=%d";
+			
+		if(is_array($status)){
+			if(count($status)>1){
+				$sparam = implode(",",$status);
+				$sql.=" AND mr.status IN (%s) ";
+			} else {
+				$sparam = $status[0];
+				$sql.=" AND mr.status=%d ";
+			}
+		} else {
+			$sparam=$status;
+			$sql.=" AND mr.status=%d ";
+		}
+		$sql .= " LIMIT 1";
+			
+		$result = $this->conn->_singleSelect($sql, $mediaid, $sparam);
+		if($result){
+			$result->netConnectionUrl = $this->cfg->streamingserver;
+			$result->mediaUrl = 'exercises/'.$result->filename;
+		}
+		return $result;
 	}
 }
 ?>
