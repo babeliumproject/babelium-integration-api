@@ -4,7 +4,7 @@ echo "\n\n";
 require_once 'MediaTask.php';
 echo "[".date("d/m/Y H:i:s")."] Commencing video processing task...\n";
 $mt = new MediaTask();
-$mt->processPendingVideos();
+$mt->processRawMedia(); 
 
 echo "\n\n";
 require_once 'VideoCollage.php';
